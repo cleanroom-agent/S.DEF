@@ -13,8 +13,34 @@
     "category": "web_application",
     "tags": ["task-management", "productivity", "full-stack"],
     "target_platforms": ["web", "mobile"],
+    "compatibility_policy": "active",
     "annotations": { "security_level": "standard" }
   },
+
+  "version_history": [
+    {
+      "version": "2.3.0",
+      "release_date": "2026-05-01",
+      "breaking_changes": [],
+      "compatibility_notes": "Minor release; fully backward-compatible with 2.x"
+    },
+    {
+      "version": "2.0.0",
+      "release_date": "2025-11-15",
+      "deprecated": false,
+      "breaking_changes": [
+        "Task due_date field type changed from string to timestamp",
+        "Authentication migrated from session-based to JWT"
+      ],
+      "compatibility_notes": "v1 API endpoints retained as compatibility layer"
+    },
+    {
+      "version": "1.0.0",
+      "release_date": "2024-06-01",
+      "deprecated": true,
+      "eol_date": "2026-12-31"
+    }
+  ],
 
   "system_boundary": {
     "core_purpose": "Help users manage daily tasks with tagging, prioritization, and due-date reminders.",
@@ -310,12 +336,54 @@
       },
       {
         "method": "GET",
-        "path": "/api/v1/tasks",
+        "path": "/api/v2/tasks",
         "auth": "bearer_jwt",
-        "description": "List tasks for the authenticated user.",
+        "description": "List tasks for the authenticated user (v2).",
+        "status": "active",
         "response": {
           "200": { "body": ["Task"] }
         }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/tasks",
+        "auth": "bearer_jwt",
+        "description": "List tasks (v1, deprecated).",
+        "status": "deprecated",
+        "deprecated": {
+          "since_version": "2.0.0",
+          "replaced_by": "/api/v2/tasks",
+          "removal_version": "3.0.0",
+          "migration_guide": "Switch to /api/v2/tasks. Response format is identical."
+        },
+        "compatibility": {
+          "maps_to": "/api/v2/tasks",
+          "transform_logic": "Forward request to /api/v2/tasks unchanged; response is compatible"
+        },
+        "response": {
+          "200": { "body": ["Task"] }
+        }
+      }
+    ],
+    "compatibility_modules": [
+      {
+        "id": "compat-v1",
+        "name": "v1 Compatibility Module",
+        "description": "Backward-compatibility layer for v1 API endpoints.",
+        "targets_versions": ["1.0.0"],
+        "interfaces": ["IUserServiceV1", "ITaskRepositoryV1"],
+        "functions": ["convertTaskV1ToV2", "convertTaskV2ToV1"]
+      }
+    ],
+    "data_migrations": [
+      {
+        "id": "migrate-task-schema",
+        "description": "Migrate Task data from v1 to v2 schema.",
+        "from_entity": "Task",
+        "to_entity": "Task",
+        "from_version": "1.0.0",
+        "to_version": "2.0.0",
+        "algorithm": "1. Parse due_date from string to timestamp\n2. Set created_at to current time if missing\n3. Keep all other fields unchanged"
       }
     ]
   },
@@ -780,6 +848,7 @@
 
   "reconstruction_rules": {
     "reconstruction_fidelity": "production_equivalent",
+    "compatibility_mode": "mixed",
     "tech_constraints": {
       "language_family": "javascript",
       "runtime": "node",

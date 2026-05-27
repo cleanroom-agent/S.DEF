@@ -38,6 +38,8 @@ export interface SoftwareDefinition {
   system_boundary?: SystemBoundary;
   /** Design decisions with rationale. */
   design_decisions?: DesignDecision[];
+  /** Version history — tracks the evolution of the software over time. */
+  version_history?: VersionRecord[];
 
   /** Domain model — business concepts, rules, and processes. */
   domain?: Domain;
@@ -86,6 +88,8 @@ export interface SoftwareMetadata {
   tags?: string[];
   /** Target platforms (e.g. "web", "mobile", "desktop", "embedded"). */
   target_platforms?: string[];
+  /** Compatibility policy (e.g. "none", "active", "full"). */
+  compatibility_policy?: string;
   /** Arbitrary annotations for extensibility. */
   annotations?: Record<string, unknown>;
 }
@@ -158,6 +162,89 @@ export interface DesignDecision {
   consequences?: string[];
   /** Additional constraints imposed by this decision. */
   constraints?: string[];
+}
+
+// ============================================================================
+// Versioning & Compatibility
+// ============================================================================
+
+/**
+ * A record of a software version, capturing what changed and how
+ * backward compatibility was (or wasn't) maintained.
+ *
+ * This enables consumer agents to understand the evolution of the software
+ * and make informed decisions about which compatibility layers to include.
+ */
+export interface VersionRecord {
+  /** Version identifier (e.g. "1.0.0", "2.0.0"). */
+  version: string;
+  /** Release date. */
+  release_date?: string;
+  /** Whether this version is deprecated. */
+  deprecated?: boolean;
+  /** When this version reaches end-of-life. */
+  eol_date?: string;
+  /** Breaking changes introduced in this version. */
+  breaking_changes?: string[];
+  /** Notes on backward compatibility. */
+  compatibility_notes?: string;
+}
+
+/**
+ * Deprecation metadata — marks an interface, class, data entity, or method
+ * as superseded by a newer version.
+ *
+ * Consumer agents use this to decide whether to generate the element:
+ * - `include_compatibility: false` → skip all deprecated elements
+ * - `include_compatibility: true` → generate with deprecation annotations
+ */
+export interface DeprecationInfo {
+  /** Version in which this element was deprecated. */
+  since_version?: string;
+  /** Reference to the element that replaces this one (e.g. entity name or interface ID). */
+  replaced_by?: string;
+  /** Version in which this element is planned (or was) removed. */
+  removal_version?: string;
+  /** Guidance for migrating from this element to its replacement. */
+  migration_guide?: string;
+}
+
+/**
+ * Compatibility mapping — describes how a legacy element (API, data field)
+ * maps to the current version's equivalent.
+ *
+ * This is used by consumer agents when generating adapter/forwarder code.
+ */
+export interface CompatibilityMapping {
+  /** The target element this one forwards to. */
+  maps_to?: string;
+  /** Mapping of legacy field names to current field names. */
+  field_mapping?: Record<string, string>;
+  /** Description of the transformation logic in pseudocode. */
+  transform_logic?: string;
+  /** Whether the mapping is bidirectional. */
+  bidirectional?: boolean;
+}
+
+/**
+ * Data migration specification — describes how to convert data
+ * from an older schema version to the current schema.
+ */
+export interface DataMigration {
+  /** Unique identifier. */
+  id: string;
+  /** Description. */
+  description?: string;
+  /** Source entity name (old version). */
+  from_entity: string;
+  /** Target entity name (new version). */
+  to_entity: string;
+  /** Source version. */
+  from_version?: string;
+  /** Target version. */
+  to_version?: string;
+  /** Pseudocode describing the migration algorithm. */
+  algorithm?: string;
 }
 
 // ============================================================================
@@ -334,6 +421,12 @@ export interface CrossCuttingConcern {
 export interface DataModel {
   /** Entity name (e.g. "User", "Order"). */
   entity: string;
+  /** Lifecycle status: "active" (current), "deprecated", "legacy". */
+  status?: string;
+  /** Version this entity was introduced in. */
+  version?: string;
+  /** Deprecation metadata. */
+  deprecated?: DeprecationInfo;
   /** What this entity represents in the domain. */
   description?: string;
   /** The logical model — business meaning in natural language. */
@@ -366,6 +459,10 @@ export interface DataAttribute {
   unique?: boolean;
   /** Whether this is internal (not exposed to clients). */
   internal?: boolean;
+  /** Whether this field is deprecated (retained for compat). */
+  deprecated?: boolean;
+  /** How this legacy field maps to the current schema. */
+  compatibility?: CompatibilityMapping;
   /** Constraints (e.g. "max_length:200", "non_empty"). */
   constraints?: string[];
 }
@@ -415,12 +512,44 @@ export interface Contracts {
   enums?: EnumContract[];
   /** API endpoints (REST, gRPC, etc.). */
   apis?: ApiContract[];
+  /** Compatibility modules — isolated modules that exist only for backward compat. */
+  compatibility_modules?: CompatibilityModule[];
+  /** Data migration specifications. */
+  data_migrations?: DataMigration[];
+}
+
+/**
+ * A compatibility module is an isolated set of interfaces, classes, or APIs
+ * that exist solely to maintain backward compatibility with older versions.
+ *
+ * Consumer agents can optionally exclude these when generating clean code.
+ */
+export interface CompatibilityModule {
+  /** Module identifier. */
+  id: string;
+  /** Human-readable name. */
+  name: string;
+  /** Description. */
+  description?: string;
+  /** The versions this module provides compatibility for. */
+  targets_versions?: string[];
+  /** Interfaces in this compat module. */
+  interfaces?: string[];
+  /** Functions in this compat module. */
+  functions?: string[];
 }
 
 export interface InterfaceContract {
   name: string;
   /** Indicates this is abstract and must be implemented. */
   is_abstract?: boolean;
+  /** Lifecycle status: "active" (current), "deprecated", "legacy". */
+  status?: string;
+  /** Version this interface was introduced in. */
+  version?: string;
+  /** Deprecation metadata. */
+  deprecated?: DeprecationInfo;
+  /** Description. */
   description?: string;
   /** Methods defined on this interface. */
   methods?: ContractMethod[];
@@ -430,6 +559,13 @@ export interface InterfaceContract {
 
 export interface ClassContract {
   name: string;
+  /** Lifecycle status: "active" (current), "deprecated", "legacy". */
+  status?: string;
+  /** Version this class was introduced in. */
+  version?: string;
+  /** Deprecation metadata. */
+  deprecated?: DeprecationInfo;
+  /** Description. */
   description?: string;
   /** Interfaces this class implements. */
   implements?: string[];
@@ -442,6 +578,10 @@ export interface ClassContract {
 export interface ContractMethod {
   /** Method signature (e.g. "create_task(input: CreateTaskInput) -> Task"). */
   signature: string;
+  /** Lifecycle status: "active" (current), "deprecated", "legacy". */
+  status?: string;
+  /** Deprecation metadata. */
+  deprecated?: DeprecationInfo;
   /** Behavioral description in natural language. */
   behavior?: string;
   /** Conditions that must be true before calling. */
@@ -455,6 +595,8 @@ export interface ContractMethod {
 export interface EnumContract {
   name: string;
   description?: string;
+  /** Deprecation metadata. */
+  deprecated?: DeprecationInfo;
   /** Enumeration values. */
   values: string[];
 }
@@ -466,6 +608,13 @@ export interface ApiContract {
   path: string;
   /** Auth requirement (e.g. "bearer_jwt", "none"). */
   auth?: string;
+  /** Lifecycle status: "active" (current), "deprecated", "legacy". */
+  status?: string;
+  /** Deprecation metadata. */
+  deprecated?: DeprecationInfo;
+  /** Compatibility layer — how this legacy API maps to the current one. */
+  compatibility?: CompatibilityMapping;
+  /** Description. */
   description?: string;
   /** Request specification. */
   request?: ApiRequest;
@@ -1228,6 +1377,16 @@ export interface ReconstructionRules {
     | "prototype"
     | "production_equivalent"
     | "bit_identical";
+  /**
+   * Compatibility mode for code generation:
+   * - "full": Keep all compatibility layers (behavior identical to original)
+   * - "mixed": Keep compat layers but mark as deprecated
+   * - "clean": Strip all deprecated/compat elements, generate only current versions
+   * - "custom": Use `target_versions` for fine-grained control
+   */
+  compatibility_mode?: "full" | "mixed" | "clean" | "custom";
+  /** When compatibility_mode is "custom", which versions to include compat for. */
+  target_versions?: string[];
   /** Technology stack constraints. */
   tech_constraints?: TechConstraints;
   /** Directives that guide the reconstruction process. */
@@ -1260,6 +1419,8 @@ export interface ReconstructionDirective {
   directive: string;
   /** Why this directive exists. */
   rationale?: string;
+  /** When true, this directive acts as a read-only lock — agents must not modify the targeted code without explicit approval. */
+  locked?: boolean;
 }
 
 export interface EnvironmentVariable {

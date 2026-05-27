@@ -11,7 +11,16 @@
                     "description": "Behavioral description.",
                     "type": "string"
                 },
+                "compatibility": {
+                    "$ref": "#/definitions/CompatibilityMapping",
+                    "description": "Compatibility layer — how this legacy API maps to the current one."
+                },
+                "deprecated": {
+                    "$ref": "#/definitions/DeprecationInfo",
+                    "description": "Deprecation metadata."
+                },
                 "description": {
+                    "description": "Description.",
                     "type": "string"
                 },
                 "method": {
@@ -40,6 +49,10 @@
                         "type": "string"
                     },
                     "type": "array"
+                },
+                "status": {
+                    "description": "Lifecycle status: \"active\" (current), \"deprecated\", \"legacy\".",
+                    "type": "string"
                 }
             },
             "required": [
@@ -342,7 +355,12 @@
                     },
                     "type": "array"
                 },
+                "deprecated": {
+                    "$ref": "#/definitions/DeprecationInfo",
+                    "description": "Deprecation metadata."
+                },
                 "description": {
+                    "description": "Description.",
                     "type": "string"
                 },
                 "implements": {
@@ -360,6 +378,14 @@
                     "type": "array"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Lifecycle status: \"active\" (current), \"deprecated\", \"legacy\".",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version this class was introduced in.",
                     "type": "string"
                 }
             },
@@ -381,6 +407,71 @@
             },
             "required": [
                 "type"
+            ],
+            "type": "object"
+        },
+        "CompatibilityMapping": {
+            "description": "Compatibility mapping — describes how a legacy element (API, data field)\nmaps to the current version's equivalent.\n\nThis is used by consumer agents when generating adapter/forwarder code.",
+            "properties": {
+                "bidirectional": {
+                    "description": "Whether the mapping is bidirectional.",
+                    "type": "boolean"
+                },
+                "field_mapping": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Mapping of legacy field names to current field names."
+                },
+                "maps_to": {
+                    "description": "The target element this one forwards to.",
+                    "type": "string"
+                },
+                "transform_logic": {
+                    "description": "Description of the transformation logic in pseudocode.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "CompatibilityModule": {
+            "description": "A compatibility module is an isolated set of interfaces, classes, or APIs\nthat exist solely to maintain backward compatibility with older versions.\n\nConsumer agents can optionally exclude these when generating clean code.",
+            "properties": {
+                "description": {
+                    "description": "Description.",
+                    "type": "string"
+                },
+                "functions": {
+                    "description": "Functions in this compat module.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Module identifier.",
+                    "type": "string"
+                },
+                "interfaces": {
+                    "description": "Interfaces in this compat module.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "targets_versions": {
+                    "description": "The versions this module provides compatibility for.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "id",
+                "name"
             ],
             "type": "object"
         },
@@ -463,6 +554,10 @@
                     "description": "Behavioral description in natural language.",
                     "type": "string"
                 },
+                "deprecated": {
+                    "$ref": "#/definitions/DeprecationInfo",
+                    "description": "Deprecation metadata."
+                },
                 "errors": {
                     "description": "Error cases.",
                     "items": {
@@ -487,6 +582,10 @@
                 "signature": {
                     "description": "Method signature (e.g. \"create_task(input: CreateTaskInput) -> Task\").",
                     "type": "string"
+                },
+                "status": {
+                    "description": "Lifecycle status: \"active\" (current), \"deprecated\", \"legacy\".",
+                    "type": "string"
                 }
             },
             "required": [
@@ -508,6 +607,20 @@
                     "description": "Concrete classes.",
                     "items": {
                         "$ref": "#/definitions/ClassContract"
+                    },
+                    "type": "array"
+                },
+                "compatibility_modules": {
+                    "description": "Compatibility modules — isolated modules that exist only for backward compat.",
+                    "items": {
+                        "$ref": "#/definitions/CompatibilityModule"
+                    },
+                    "type": "array"
+                },
+                "data_migrations": {
+                    "description": "Data migration specifications.",
+                    "items": {
+                        "$ref": "#/definitions/DataMigration"
                     },
                     "type": "array"
                 },
@@ -547,6 +660,10 @@
         },
         "DataAttribute": {
             "properties": {
+                "compatibility": {
+                    "$ref": "#/definitions/CompatibilityMapping",
+                    "description": "How this legacy field maps to the current schema."
+                },
                 "constraints": {
                     "description": "Constraints (e.g. \"max_length:200\", \"non_empty\").",
                     "items": {
@@ -556,6 +673,10 @@
                 },
                 "default": {
                     "description": "Default value."
+                },
+                "deprecated": {
+                    "description": "Whether this field is deprecated (retained for compat).",
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
@@ -597,6 +718,45 @@
             ],
             "type": "object"
         },
+        "DataMigration": {
+            "description": "Data migration specification — describes how to convert data\nfrom an older schema version to the current schema.",
+            "properties": {
+                "algorithm": {
+                    "description": "Pseudocode describing the migration algorithm.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description.",
+                    "type": "string"
+                },
+                "from_entity": {
+                    "description": "Source entity name (old version).",
+                    "type": "string"
+                },
+                "from_version": {
+                    "description": "Source version.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique identifier.",
+                    "type": "string"
+                },
+                "to_entity": {
+                    "description": "Target entity name (new version).",
+                    "type": "string"
+                },
+                "to_version": {
+                    "description": "Target version.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "from_entity",
+                "id",
+                "to_entity"
+            ],
+            "type": "object"
+        },
         "DataModel": {
             "description": "A Data Model describes a data entity — its logical meaning,\nphysical representation, attributes, relationships, and validation rules.",
             "properties": {
@@ -606,6 +766,10 @@
                         "$ref": "#/definitions/DataAttribute"
                     },
                     "type": "array"
+                },
+                "deprecated": {
+                    "$ref": "#/definitions/DeprecationInfo",
+                    "description": "Deprecation metadata."
                 },
                 "description": {
                     "description": "What this entity represents in the domain.",
@@ -630,12 +794,20 @@
                     },
                     "type": "array"
                 },
+                "status": {
+                    "description": "Lifecycle status: \"active\" (current), \"deprecated\", \"legacy\".",
+                    "type": "string"
+                },
                 "validation_rules": {
                     "description": "Validation rules that apply to this entity.",
                     "items": {
                         "type": "string"
                     },
                     "type": "array"
+                },
+                "version": {
+                    "description": "Version this entity was introduced in.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -741,6 +913,28 @@
             },
             "type": "object"
         },
+        "DeprecationInfo": {
+            "description": "Deprecation metadata — marks an interface, class, data entity, or method\nas superseded by a newer version.\n\nConsumer agents use this to decide whether to generate the element:\n- `include_compatibility: false` → skip all deprecated elements\n- `include_compatibility: true` → generate with deprecation annotations",
+            "properties": {
+                "migration_guide": {
+                    "description": "Guidance for migrating from this element to its replacement.",
+                    "type": "string"
+                },
+                "removal_version": {
+                    "description": "Version in which this element is planned (or was) removed.",
+                    "type": "string"
+                },
+                "replaced_by": {
+                    "description": "Reference to the element that replaces this one (e.g. entity name or interface ID).",
+                    "type": "string"
+                },
+                "since_version": {
+                    "description": "Version in which this element was deprecated.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "DesignDecision": {
             "description": "A record of a design decision, its context, alternatives considered,\nrationale, and consequences.\n\nEvery significant architectural or design choice should be captured here.",
             "properties": {
@@ -840,6 +1034,10 @@
         },
         "EnumContract": {
             "properties": {
+                "deprecated": {
+                    "$ref": "#/definitions/DeprecationInfo",
+                    "description": "Deprecation metadata."
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1131,7 +1329,12 @@
         },
         "InterfaceContract": {
             "properties": {
+                "deprecated": {
+                    "$ref": "#/definitions/DeprecationInfo",
+                    "description": "Deprecation metadata."
+                },
                 "description": {
+                    "description": "Description.",
                     "type": "string"
                 },
                 "invariants": {
@@ -1153,6 +1356,14 @@
                     "type": "array"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Lifecycle status: \"active\" (current), \"deprecated\", \"legacy\".",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version this interface was introduced in.",
                     "type": "string"
                 }
             },
@@ -1274,6 +1485,10 @@
                     "description": "The directive content.",
                     "type": "string"
                 },
+                "locked": {
+                    "description": "When true, this directive acts as a read-only lock — agents must not modify the targeted code without explicit approval.",
+                    "type": "boolean"
+                },
                 "priority": {
                     "description": "Priority level: must, should, or may.",
                     "enum": [
@@ -1297,6 +1512,16 @@
         "ReconstructionRules": {
             "description": "Reconstruction Rules guide the builder agent in how to reconstruct\nthe software from the S.DEF description.\n\nThis includes the target fidelity level, technology stack constraints,\nand priority-ordered directives.",
             "properties": {
+                "compatibility_mode": {
+                    "description": "Compatibility mode for code generation:\n- \"full\": Keep all compatibility layers (behavior identical to original)\n- \"mixed\": Keep compat layers but mark as deprecated\n- \"clean\": Strip all deprecated/compat elements, generate only current versions\n- \"custom\": Use `target_versions` for fine-grained control",
+                    "enum": [
+                        "clean",
+                        "custom",
+                        "full",
+                        "mixed"
+                    ],
+                    "type": "string"
+                },
                 "directives": {
                     "description": "Directives that guide the reconstruction process.",
                     "items": {
@@ -1312,6 +1537,13 @@
                         "prototype"
                     ],
                     "type": "string"
+                },
+                "target_versions": {
+                    "description": "When compatibility_mode is \"custom\", which versions to include compat for.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "tech_constraints": {
                     "$ref": "#/definitions/TechConstraints",
@@ -1495,6 +1727,13 @@
                 "version": {
                     "description": "Version of the software being described.",
                     "type": "string"
+                },
+                "version_history": {
+                    "description": "Version history — tracks the evolution of the software over time.",
+                    "items": {
+                        "$ref": "#/definitions/VersionRecord"
+                    },
+                    "type": "array"
                 }
             },
             "required": [
@@ -1543,6 +1782,10 @@
                 },
                 "category": {
                     "description": "Category (e.g. \"web_application\", \"library\", \"cli_tool\").",
+                    "type": "string"
+                },
+                "compatibility_policy": {
+                    "description": "Compatibility policy (e.g. \"none\", \"active\", \"full\").",
                     "type": "string"
                 },
                 "homepage": {
@@ -3480,6 +3723,42 @@
                     "type": "array"
                 }
             },
+            "type": "object"
+        },
+        "VersionRecord": {
+            "description": "A record of a software version, capturing what changed and how\nbackward compatibility was (or wasn't) maintained.\n\nThis enables consumer agents to understand the evolution of the software\nand make informed decisions about which compatibility layers to include.",
+            "properties": {
+                "breaking_changes": {
+                    "description": "Breaking changes introduced in this version.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "compatibility_notes": {
+                    "description": "Notes on backward compatibility.",
+                    "type": "string"
+                },
+                "deprecated": {
+                    "description": "Whether this version is deprecated.",
+                    "type": "boolean"
+                },
+                "eol_date": {
+                    "description": "When this version reaches end-of-life.",
+                    "type": "string"
+                },
+                "release_date": {
+                    "description": "Release date.",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version identifier (e.g. \"1.0.0\", \"2.0.0\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "version"
+            ],
             "type": "object"
         }
     }
