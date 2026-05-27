@@ -1,0 +1,61 @@
+name: Render Proposals
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "proposals/**/*.md"
+      - "scripts/render-proposals.ts"
+
+  pull_request:
+    paths:
+      - "proposals/**/*.md"
+      - "scripts/render-proposals.ts"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render-proposals:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      # On PR, verify rendered docs are up to date (must run BEFORE generate)
+      - name: Verify proposals are up to date
+        if: github.event_name == 'pull_request'
+        run: bun run check:proposals
+
+      # On push to main, generate and commit any changes
+      - name: Render proposals
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: bun run generate:proposals
+
+      - name: Check for changes
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        id: changes
+        run: |
+          if [[ -n "$(git status --porcelain docs/proposals/ docs/docs.json)" ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/proposals/ docs/docs.json
+          git commit -m "docs: auto-render proposals documentation"
+          git push

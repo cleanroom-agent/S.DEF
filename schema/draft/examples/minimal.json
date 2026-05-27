@@ -1,0 +1,11 @@
+{
+  "sdef_version": "2026-05-27",
+  "name": "example-service",
+  "description": "A minimal software definition example",
+  "version": "1.0.0",
+  "metadata": {
+    "authors": [{ "name": "Example Author" }],
+    "license": "MIT",
+    "tags": ["example"]
+  }
+}

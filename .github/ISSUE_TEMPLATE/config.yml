@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Specification Discussion
+    url: https://github.com/cleanroom-agent/S.DEF/discussions
+    about: Discuss ideas for the specification

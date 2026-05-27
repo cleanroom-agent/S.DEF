@@ -1,0 +1,94 @@
+# Schema Reference
+
+This section documents the formal schema for S.DEF documents.
+
+The canonical schema is defined in TypeScript at [schema/draft/schema.ts](https://github.com/cleanroom-agent/S.DEF/blob/main/schema/draft/schema.ts)
+and generated into JSON Schema at [schema/draft/schema.json](https://github.com/cleanroom-agent/S.DEF/blob/main/schema/draft/schema.json).
+
+{/* @category SoftwareDefinition */}
+
+## SoftwareDefinition
+
+The root object of any S.DEF document. It contains all layers of software description:
+system boundary, domain model, architecture, data models, contracts, behavior, UI,
+tests, design decisions, reconstruction rules, dependencies, and deployment.
+
+```typescript
+interface SoftwareDefinition {
+  sdef_version: string;
+  name: string;
+  description?: string;
+  version?: string;
+  metadata?: SoftwareMetadata;
+  system_boundary?: SystemBoundary;
+  design_decisions?: DesignDecision[];
+  domain?: Domain;
+  architecture?: Architecture;
+  data_models?: DataModel[];
+  contracts?: Contracts;
+  behavior?: Behavior;
+  ui?: UserInterface;
+  tests?: TestContract;
+  reconstruction_rules?: ReconstructionRules;
+  dependencies?: Dependency[];
+  deployment?: Deployment;
+  resources?: Resource[];
+}
+```
+
+## Design Philosophy
+
+S.DEF captures **what** software does and **why** — not how it is implemented.
+Key principles:
+
+- **Zero code**: No executable code; algorithms use standard pseudocode
+- **Intent-first**: Design decisions with rationale are first-class citizens
+- **Language-agnostic**: Abstract data types, no language-specific syntax
+- **Boundary-explicit**: `non_goals` prevent over-implementation
+- **Layered abstraction**: From business domain → architecture → contracts → behavior → quality
+- **Verifiable**: Test contracts ensure reconstruction correctness
+- **Fidelity-targeted**: Declare reconstruction fidelity level (prototype / production_equivalent / bit_identical)
+
+## Layer Overview
+
+| Layer     | Section                                    | Purpose                             |
+| --------- | ------------------------------------------ | ----------------------------------- |
+| Meta      | `sdef_version`, `name`, `metadata`         | Document identity                   |
+| Boundary  | `system_boundary`                          | What the software does and NOT do   |
+| Decisions | `design_decisions`                         | Why design choices were made        |
+| Domain    | `domain`                                   | Business concepts, rules, processes |
+| Structure | `architecture`, `data_models`, `contracts` | Static structure                    |
+| Behavior  | `behavior`, `ui`                           | Dynamic behavior                    |
+| Quality   | `tests`, `reconstruction_rules`            | Verification and guidance           |
+| Runtime   | `dependencies`, `deployment`, `resources`  | External deps and deployment        |
+
+## UI Architecture
+
+The `ui` section supports three layers (use one or combine):
+
+| Layer            | Field           | Purpose                                          |
+| ---------------- | --------------- | ------------------------------------------------ |
+| Design System    | `design_system` | Tokens: colors, typography, spacing, themes      |
+| Visual Document  | `document`      | Pen-compatible object tree with S.DEF extensions |
+| Abstract Screens | `screens`       | Simplified semantic screen descriptions          |
+
+### Pen Compatibility
+
+The `document` field follows the [Pen format](https://docs.pencil.dev/for-developers/the-pen-format)
+object model:
+
+- **Elements**: `frame`, `text`, `rectangle`, `ellipse`, `path`, `ref`, `icon_font`
+- **Layout**: Flexbox-style (`layout`, `justifyContent`, `alignItems`, `gap`, `padding`)
+- **Components**: `reusable: true` + `type: "ref"` + `descendants` overrides + `slot`
+- **Variables**: Document-level `$variable` references with theme support
+
+S.DEF adds semantic extensions (prefixed `sdef`) to standard Pen elements:
+
+| Extension           | Purpose                                              |
+| ------------------- | ---------------------------------------------------- |
+| `sdefBindings`      | Data binding to entity fields (one-way / two-way)    |
+| `sdefBehaviors`     | Interaction behaviors (click → action → outcome)     |
+| `sdefStates`        | Visual states with conditions (loading, error, etc.) |
+| `sdefAccessibility` | ARIA labels, roles, keyboard shortcuts               |
+| `sdefTestHook`      | Test automation identifier                           |
+| `sdefNavigation`    | Navigation target when element is activated          |

@@ -1,0 +1,842 @@
+{
+  "sdef_version": "2026-05-27",
+  "name": "com.example.taskflow",
+  "description": "A full-stack task management application with user authentication, tagging, and due-date reminders.",
+  "version": "2.3.0",
+  "metadata": {
+    "authors": [
+      { "name": "laplaceliu", "email": "laplaceliu#outlook.com", "url": "https://example.com" }
+    ],
+    "license": "Apache-2.0",
+    "homepage": "https://example.com/taskflow",
+    "repository": "https://github.com/example/taskflow",
+    "category": "web_application",
+    "tags": ["task-management", "productivity", "full-stack"],
+    "target_platforms": ["web", "mobile"],
+    "annotations": { "security_level": "standard" }
+  },
+
+  "system_boundary": {
+    "core_purpose": "Help users manage daily tasks with tagging, prioritization, and due-date reminders.",
+    "target_users": ["individual users", "students", "freelancers"],
+    "in_scope": [
+      "Create, edit, delete tasks",
+      "Assign tags to tasks",
+      "Set due dates with reminders",
+      "Filter and sort tasks by status, tag, due date",
+      "User registration and authentication"
+    ],
+    "non_goals": [
+      "No multi-user collaboration",
+      "No real-time sync across devices",
+      "No file attachments",
+      "No calendar integration"
+    ],
+    "success_criteria": [
+      "Add a task in under 2 clicks",
+      "Page load time < 200ms",
+      "All functions work offline (local-first)"
+    ],
+    "constraints": [
+      { "category": "performance", "description": "API response p99 < 200ms" },
+      { "category": "compatibility", "description": "Chrome 90+, Firefox 88+, Safari 14+" },
+      { "category": "security", "description": "JWT with httpOnly cookies; passwords hashed with bcrypt" }
+    ],
+    "external_dependencies": ["SendGrid Email API"]
+  },
+
+  "design_decisions": [
+    {
+      "id": "DD-01",
+      "topic": "State Management",
+      "decision": "Centralized state container (Redux-like pattern) for shared state.",
+      "rationale": "Multiple components share user auth state and task list; avoids prop drilling.",
+      "alternatives": ["Component-local state", "MobX reactive"],
+      "constraints": ["All state mutations must be pure reducer functions"]
+    },
+    {
+      "id": "DD-02",
+      "topic": "Storage",
+      "decision": "PostgreSQL with Redis cache layer.",
+      "rationale": "Relational data model fits tasks/users/tags; Redis handles session and hot-data caching.",
+      "alternatives": ["MongoDB", "SQLite"],
+      "consequences": [
+        "Pro: Strong ACID guarantees, mature ecosystem",
+        "Con: Requires separate Redis deployment"
+      ]
+    }
+  ],
+
+  "domain": {
+    "business_concepts": [
+      {
+        "id": "Task",
+        "name": "Task",
+        "description": "A unit of work to be completed by a user.",
+        "attributes": [
+          { "name": "id", "type": "UUID", "description": "Unique identifier" },
+          { "name": "title", "type": "string", "description": "Task title" },
+          { "name": "completed", "type": "boolean", "description": "Completion status" },
+          { "name": "due_date", "type": "timestamp?", "description": "Optional deadline" }
+        ],
+        "relationships": [
+          { "role": "owned by", "target": "User", "cardinality": "N:1" },
+          { "role": "tagged with", "target": "Tag", "cardinality": "M:N" }
+        ],
+        "invariants": ["A task with status 'completed' cannot have its title changed"]
+      },
+      {
+        "id": "Tag",
+        "name": "Tag",
+        "description": "A label applied to tasks for categorization.",
+        "attributes": [
+          { "name": "name", "type": "string", "description": "Tag name (unique per user)" }
+        ]
+      }
+    ],
+    "business_rules": [
+      {
+        "id": "BR-01",
+        "name": "Task Title Required",
+        "description": "Task title must be non-empty.",
+        "condition": "task.title is empty or whitespace-only",
+        "action": "Reject with ValidationError",
+        "priority": "high"
+      },
+      {
+        "id": "BR-02",
+        "name": "Due Date Validation",
+        "description": "Due date, if set, must be in the future.",
+        "condition": "task.due_date <= now()",
+        "action": "Reject with ValidationError: 'due_date must be in the future'",
+        "priority": "high"
+      }
+    ],
+    "business_processes": [
+      {
+        "id": "BP-Register",
+        "name": "User Registration",
+        "description": "The flow from signup to active account.",
+        "stages": [
+          {
+            "stage": "signup",
+            "name": "Submit Registration",
+            "entry_condition": "User submits email + password",
+            "actions": ["Validate email format", "Hash password with bcrypt", "Create User record (status: pending_activation)"],
+            "exit_condition": "User record created"
+          },
+          {
+            "stage": "activate",
+            "name": "Email Activation",
+            "entry_condition": "User clicks activation link",
+            "actions": ["Validate activation token", "Set user status to 'active'"],
+            "exit_condition": "User is active"
+          }
+        ],
+        "exception_handling": [
+          { "scenario": "Activation token expired", "action": "Show resend-activation button" }
+        ]
+      }
+    ]
+  },
+
+  "architecture": {
+    "style": "layered",
+    "rationale": "Clean separation of concerns; fits the team's expertise.",
+    "layers": [
+      { "name": "presentation", "components": ["WebApp"] },
+      { "name": "application", "components": ["TaskService", "UserService", "AuthService"] },
+      { "name": "domain", "components": ["Task", "User", "Tag"] },
+      { "name": "infrastructure", "components": ["PostgresRepository", "RedisCache", "EmailNotifier"] }
+    ],
+    "modules": [
+      {
+        "name": "task-management",
+        "responsibility": "CRUD operations for tasks, filtering, sorting.",
+        "exports": ["TaskService"],
+        "depends_on": ["domain::Task", "infrastructure::PostgresRepository"],
+        "components": [
+          { "name": "TaskService", "type": "service" },
+          { "name": "TaskController", "type": "controller" }
+        ]
+      },
+      {
+        "name": "auth",
+        "responsibility": "User registration, login, JWT management.",
+        "exports": ["AuthService"],
+        "depends_on": ["domain::User", "infrastructure::PostgresRepository"]
+      }
+    ],
+    "communication": [
+      { "type": "sync", "description": "REST over HTTP for API calls" },
+      { "type": "async", "description": "Due-date reminders via RabbitMQ → EmailNotifier" }
+    ],
+    "cross_cutting_concerns": [
+      { "name": "logging", "description": "Structured JSON logging at info level; error level for exceptions" },
+      { "name": "error_handling", "description": "Centralized error middleware; user-friendly messages in API responses" }
+    ]
+  },
+
+  "data_models": [
+    {
+      "entity": "User",
+      "description": "Registered user account.",
+      "logical_model": "A user is an authenticated person who owns tasks and tags.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "identity": true, "generated": true },
+        { "name": "email", "type": "string", "format": "email", "required": true, "unique": true },
+        { "name": "password_hash", "type": "string", "required": true, "internal": true },
+        { "name": "status", "type": "string", "required": true, "default": "pending_activation" }
+      ],
+      "relationships": [
+        { "kind": "has_many", "target": "Task", "foreign_key": "owner_id", "on_delete": "cascade" }
+      ],
+      "physical_design": {
+        "primary_key": "id",
+        "indexes": [{ "fields": ["email"], "type": "unique" }]
+      }
+    },
+    {
+      "entity": "Task",
+      "description": "A to-do item.",
+      "logical_model": "A task represents a unit of work. It belongs to a user and can have many tags.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "identity": true, "generated": true },
+        { "name": "title", "type": "string", "required": true, "constraints": ["max_length:200", "non_empty"] },
+        { "name": "completed", "type": "boolean", "default": false },
+        { "name": "due_date", "type": "timestamp", "constraints": ["must be in the future if set"] },
+        { "name": "created_at", "type": "timestamp", "required": true, "generated": true },
+        { "name": "owner_id", "type": "UUID", "required": true }
+      ],
+      "relationships": [
+        { "kind": "belongs_to", "target": "User", "foreign_key": "owner_id" },
+        { "kind": "many_to_many", "target": "Tag", "join_table": "task_tags" }
+      ],
+      "validation_rules": ["title must not be empty or whitespace-only"],
+      "physical_design": {
+        "primary_key": "id",
+        "indexes": [
+          { "fields": ["owner_id", "created_at"], "type": "composite" },
+          { "fields": ["completed"], "type": "single" }
+        ]
+      }
+    },
+    {
+      "entity": "Tag",
+      "description": "A label for categorizing tasks.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "identity": true, "generated": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "user_id", "type": "UUID", "required": true }
+      ],
+      "relationships": [
+        { "kind": "belongs_to", "target": "User", "foreign_key": "user_id" }
+      ]
+    }
+  ],
+
+  "contracts": {
+    "interfaces": [
+      {
+        "name": "ITaskRepository",
+        "is_abstract": true,
+        "description": "Abstraction for task persistence.",
+        "methods": [
+          {
+            "signature": "find_by_id(id: UUID) -> Task?",
+            "behavior": "Look up task by primary key; returns null if not found."
+          },
+          {
+            "signature": "save(task: Task) -> Task",
+            "behavior": "Create or update a task; returns the persisted object with generated ID.",
+            "postconditions": ["Returned task has a non-null ID"]
+          },
+          {
+            "signature": "find_by_user(user_id: UUID, filters: TaskFilters) -> List<Task>",
+            "behavior": "Query tasks for a user with optional filters (status, tag, date range); ordered by due_date ASC."
+          }
+        ],
+        "invariants": ["All returned Task objects must have fully loaded owner and tags"]
+      }
+    ],
+    "classes": [
+      {
+        "name": "TaskService",
+        "description": "Core task business logic.",
+        "dependencies": ["ITaskRepository", "IUserSession"],
+        "methods": [
+          {
+            "signature": "create_task(user_id: UUID, input: CreateTaskInput) -> Task",
+            "behavior": "Validate input.title is non-empty and due_date is in the future; call repository.save to persist.",
+            "preconditions": ["user_id references an existing active user"],
+            "errors": ["ValidationError: title empty", "ValidationError: date invalid"]
+          },
+          {
+            "signature": "complete_task(task_id: UUID) -> Task",
+            "behavior": "Find task, verify ownership, set completed=true, save. If already completed, throw AlreadyCompletedError.",
+            "errors": ["TaskNotFoundError", "UnauthorizedError", "AlreadyCompletedError"]
+          }
+        ]
+      }
+    ],
+    "enums": [
+      {
+        "name": "TaskStatus",
+        "description": "Possible statuses for a task.",
+        "values": ["pending", "completed", "archived"]
+      },
+      {
+        "name": "UserStatus",
+        "values": ["pending_activation", "active", "suspended"]
+      }
+    ],
+    "apis": [
+      {
+        "method": "POST",
+        "path": "/api/v1/tasks",
+        "auth": "bearer_jwt",
+        "description": "Create a new task.",
+        "request": {
+          "body": { "title": "string", "due_date": "datetime?", "tag_names": ["string?"] },
+          "validation_rules": ["title must be non-empty", "title max 200 chars"]
+        },
+        "response": {
+          "201": { "body": "Task" },
+          "400": { "body": "ValidationError", "description": "Invalid input" }
+        },
+        "behavior": "Delegates to TaskService.create_task.",
+        "side_effects": ["Publish TaskCreated event to message queue"],
+        "rate_limit": "100 req/min per user"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/tasks",
+        "auth": "bearer_jwt",
+        "description": "List tasks for the authenticated user.",
+        "response": {
+          "200": { "body": ["Task"] }
+        }
+      }
+    ]
+  },
+
+  "behavior": {
+    "functions": [
+      {
+        "name": "calculate_order_total",
+        "description": "Calculate total with tiered discount and shipping.",
+        "inputs": [
+          { "name": "items", "type": "List[OrderItem]" },
+          { "name": "customer_tier", "type": "CustomerTier" }
+        ],
+        "outputs": [
+          { "name": "total", "type": "Decimal" },
+          { "name": "discount", "type": "Decimal" }
+        ],
+        "logic": "SUBTOTAL = SUM(item.quantity * item.unit_price)\nRATE = match customer_tier:\n  'platinum' -> 0.15\n  'gold' -> 0.10\n  'silver' -> 0.05\n  'regular' -> 0\nDISCOUNT = SUBTOTAL * RATE\nSHIPPING = 0 if SUBTOTAL >= FREE_THRESHOLD else BASE_FEE\nRETURN (SUBTOTAL - DISCOUNT + SHIPPING, DISCOUNT)",
+        "complexity": "O(n)",
+        "pure_function": true,
+        "edge_cases": [
+          { "condition": "items is empty", "expected_behavior": "return (0, 0)" },
+          { "condition": "no customer tier match", "expected_behavior": "default to 'regular' (0% discount)" }
+        ]
+      }
+    ],
+    "flows": [
+      {
+        "id": "OrderCreationFlow",
+        "name": "Order Creation",
+        "description": "Complete order creation flow with inventory check and event publishing.",
+        "level": "Orchestration",
+        "participants": [
+          { "role": "OrderService", "type": "service" },
+          { "role": "InventoryService", "type": "service" },
+          { "role": "MessageQueue", "type": "infrastructure" }
+        ],
+        "steps": [
+          {
+            "step": 1,
+            "actor": "OrderService",
+            "action": "validate_request",
+            "input": "CreateOrderRequest",
+            "output": "ValidationResult",
+            "error_handling": [
+              { "condition": "validation failed", "action": "return 400 Bad Request" }
+            ]
+          },
+          {
+            "step": 2,
+            "actor": "InventoryService",
+            "action": "check_and_reserve",
+            "input": "items, warehouse_id",
+            "output": "ReservationResult",
+            "error_handling": [
+              { "condition": "insufficient inventory", "action": "return 409 Conflict" }
+            ]
+          },
+          {
+            "step": 3,
+            "actor": "OrderService",
+            "action": "create_order_record",
+            "input": "totals, validated_items",
+            "output": "Order"
+          },
+          {
+            "step": 4,
+            "actor": "MessageQueue",
+            "action": "publish",
+            "input": "OrderCreatedEvent(order)",
+            "output": "EventPublished"
+          }
+        ],
+        "compensation": {
+          "description": "If step 3 fails, release inventory reserved in step 2.",
+          "action": "InventoryService.release_reservation(order_id)"
+        }
+      }
+    ],
+    "state_machines": [
+      {
+        "entity": "Order",
+        "states": ["pending", "paid", "shipped", "completed", "cancelled"],
+        "transitions": [
+          { "from": "pending", "to": "paid", "trigger": "payment_confirmed", "guard_conditions": ["order not expired"] },
+          { "from": "pending", "to": "cancelled", "trigger": "payment_timeout" },
+          { "from": "paid", "to": "shipped", "trigger": "shipment_created" },
+          { "from": "shipped", "to": "completed", "trigger": "delivery_confirmed" }
+        ]
+      }
+    ]
+  },
+
+  "ui": {
+    "design_system": {
+      "colors": {
+        "color.primary": "#2563EB",
+        "color.primary.hover": "#1D4ED8",
+        "color.primary.pressed": "#1E40AF",
+        "color.background": "#FFFFFF",
+        "color.background.secondary": "#F9FAFB",
+        "color.text.primary": "#111827",
+        "color.text.secondary": "#6B7280",
+        "color.text.disabled": "#D1D5DB",
+        "color.border.default": "#E5E7EB",
+        "color.border.focused": "#2563EB",
+        "color.feedback.success": "#10B981",
+        "color.feedback.error": "#EF4444",
+        "color.feedback.warning": "#F59E0B"
+      },
+      "typography": {
+        "font_families": { "font.sans": "'Inter', -apple-system, sans-serif" },
+        "font_sizes": {
+          "font.size.xs": "12px",
+          "font.size.sm": "14px",
+          "font.size.base": "16px",
+          "font.size.lg": "18px",
+          "font.size.xl": "20px",
+          "font.size.2xl": "24px"
+        },
+        "font_weights": {
+          "font.weight.normal": "400",
+          "font.weight.medium": "500",
+          "font.weight.semibold": "600",
+          "font.weight.bold": "700"
+        },
+        "line_heights": {
+          "font.leading.normal": "1.5",
+          "font.leading.tight": "1.25"
+        }
+      },
+      "spacing": {
+        "space.1": "4px",
+        "space.2": "8px",
+        "space.3": "12px",
+        "space.4": "16px",
+        "space.6": "24px",
+        "space.8": "32px"
+      },
+      "border_radius": {
+        "radius.sm": "4px",
+        "radius.md": "8px",
+        "radius.lg": "12px",
+        "radius.full": "9999px"
+      },
+      "shadows": {
+        "shadow.sm": "0 1px 2px 0 rgba(0,0,0,0.05)",
+        "shadow.md": "0 4px 6px -1px rgba(0,0,0,0.1)"
+      },
+      "motion": {
+        "durations": { "duration.fast": "150ms", "duration.normal": "250ms" }
+      },
+      "themes": [
+        { "name": "light", "overrides": {} },
+        {
+          "name": "dark",
+          "overrides": {
+            "color.background": "#111827",
+            "color.background.secondary": "#1F2937",
+            "color.text.primary": "#F9FAFB",
+            "color.text.secondary": "#9CA3AF",
+            "color.border.default": "#374151"
+          }
+        }
+      ]
+    },
+
+    "document": {
+      "version": "2.11",
+      "variables": {
+        "color.primary": { "type": "color", "value": "#2563EB" },
+        "color.background": { "type": "color", "value": "#FFFFFF" },
+        "color.text": { "type": "color", "value": "#111827" },
+        "spacing.lg": { "type": "number", "value": 16 }
+      },
+      "children": [
+        {
+          "id": "app_container",
+          "type": "frame",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 16,
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#FFFFFF",
+          "children": [
+            {
+              "id": "title",
+              "type": "text",
+              "content": "My Tasks",
+              "fontSize": 24,
+              "fontWeight": "bold",
+              "fill": "$color.text"
+            },
+            {
+              "id": "todo_input_row",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 8,
+              "width": "fill_container",
+              "children": [
+                {
+                  "id": "input_field",
+                  "type": "text",
+                  "placeholder": "Add a new task...",
+                  "width": "fill_container",
+                  "padding": [8, 12],
+                  "cornerRadius": 6,
+                  "stroke": { "thickness": 1, "fill": "#D1D5DB" },
+                  "sdefBehaviors": [
+                    {
+                      "on": "enter",
+                      "action": "create_task",
+                      "parameters": { "title": { "binding": "value" } },
+                      "on_success": { "action": "refresh" }
+                    }
+                  ],
+                  "sdefTestHook": "todo-input"
+                },
+                {
+                  "id": "add_button",
+                  "type": "frame",
+                  "width": 80,
+                  "height": 36,
+                  "cornerRadius": 6,
+                  "fill": "$color.primary",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "add_button_text",
+                      "type": "text",
+                      "content": "Add",
+                      "fill": "#FFFFFF"
+                    }
+                  ],
+                  "sdefBehaviors": [
+                    {
+                      "on": "click",
+                      "action": "create_task",
+                      "parameters": { "title": { "binding": "input_field.value" } },
+                      "on_success": { "action": "refresh" }
+                    }
+                  ],
+                  "sdefTestHook": "add-button"
+                }
+              ]
+            },
+            {
+              "id": "filter_buttons",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 8,
+              "children": [
+                {
+                  "id": "filter_all",
+                  "type": "frame",
+                  "width": 60,
+                  "height": 32,
+                  "cornerRadius": 6,
+                  "fill": "$color.primary",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [{ "id": "filter_all_text", "type": "text", "content": "All", "fill": "#FFFFFF" }],
+                  "sdefBehaviors": [{ "on": "click", "action": "set_filter", "parameters": { "filter": "all" } }],
+                  "sdefTestHook": "filter-all"
+                },
+                {
+                  "id": "filter_active",
+                  "type": "frame",
+                  "width": 80,
+                  "height": 32,
+                  "cornerRadius": 6,
+                  "fill": "#E5E7EB",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [{ "id": "filter_active_text", "type": "text", "content": "Active", "fill": "$color.text" }],
+                  "sdefBehaviors": [{ "on": "click", "action": "set_filter", "parameters": { "filter": "active" } }],
+                  "sdefTestHook": "filter-active"
+                }
+              ]
+            },
+            {
+              "id": "todo_list",
+              "type": "frame",
+              "layout": "vertical",
+              "gap": 8,
+              "width": "fill_container",
+              "height": "fill_container",
+              "sdefBindings": [{ "entity": "Task", "field": "all", "direction": "one_way" }],
+              "sdefTestHook": "todo-list",
+              "children": [
+                {
+                  "id": "todo_item_template",
+                  "type": "frame",
+                  "reusable": true,
+                  "layout": "horizontal",
+                  "gap": 12,
+                  "padding": [12, 16],
+                  "width": "fill_container",
+                  "cornerRadius": 8,
+                  "stroke": { "thickness": 1, "fill": "#E5E7EB" },
+                  "sdefTestHook": "todo-item",
+                  "children": [
+                    {
+                      "id": "checkbox",
+                      "type": "rectangle",
+                      "width": 20,
+                      "height": 20,
+                      "cornerRadius": 4,
+                      "stroke": { "thickness": 2, "fill": "$color.primary" },
+                      "sdefBindings": [{ "entity": "Task", "field": "completed", "direction": "two_way" }],
+                      "sdefBehaviors": [
+                        {
+                          "on": "click",
+                          "action": "toggle_todo_completion",
+                          "parameters": { "todo_id": { "binding": "parent.id" } }
+                        }
+                      ],
+                      "sdefStates": [
+                        {
+                          "name": "checked",
+                          "condition": { "binding": "completed", "operator": "equals", "value": true },
+                          "properties": { "fill": "$color.primary" }
+                        }
+                      ],
+                      "sdefTestHook": "todo-checkbox"
+                    },
+                    {
+                      "id": "todo_title",
+                      "type": "text",
+                      "width": "fill_container",
+                      "sdefBindings": [{ "entity": "Task", "field": "title", "direction": "one_way" }],
+                      "sdefStates": [
+                        {
+                          "name": "completed",
+                          "condition": { "binding": "completed", "operator": "equals", "value": true },
+                          "properties": { "textDecoration": "line-through", "fill": "$color.text.secondary" }
+                        }
+                      ],
+                      "sdefTestHook": "todo-title"
+                    },
+                    {
+                      "id": "delete_button",
+                      "type": "text",
+                      "content": "×",
+                      "fontSize": 20,
+                      "fill": "#EF4444",
+                      "sdefBehaviors": [
+                        {
+                          "on": "click",
+                          "action": "delete_todo",
+                          "parameters": { "todo_id": { "binding": "parent.id" } },
+                          "on_success": { "action": "refresh" }
+                        }
+                      ],
+                      "sdefTestHook": "delete-button"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    "screens": [
+      {
+        "id": "task_list",
+        "name": "Task List",
+        "route": "/tasks",
+        "purpose": "Display all tasks with filtering and creation.",
+        "layout": "Top: nav bar; Filter bar; Scrollable task card list; Bottom-right: FAB",
+        "components": [
+          {
+            "name": "TaskFilterBar",
+            "type": "filter_bar",
+            "props": ["activeFilter: TaskFilters"],
+            "events": ["on_filter_change(newFilters: TaskFilters)"]
+          },
+          {
+            "name": "TaskCard",
+            "type": "card",
+            "props": ["task: Task", "onToggle: () => void"],
+            "states": ["normal", "completed", "overdue"],
+            "behaviors": ["Click checkbox toggles completion", "Click card navigates to detail"]
+          }
+        ],
+        "state": {
+          "global": ["currentUser: User?", "tasks: Task[]", "filters: TaskFilters"],
+          "local": ["is_loading: boolean"]
+        },
+        "interactions": [
+          { "trigger": "Page load", "action": "dispatch fetchTasks(filters)", "on_success": "Update tasks state" },
+          { "trigger": "Filter change", "action": "dispatch setFilters → fetchTasks", "on_success": "Update tasks state" }
+        ]
+      }
+    ],
+
+    "navigation": {
+      "type": "hierarchical",
+      "nodes": [
+        { "id": "home", "label": "Home", "icon": "home", "route": "/" },
+        { "id": "tasks", "label": "Tasks", "icon": "check-square", "route": "/tasks" }
+      ]
+    },
+
+    "responsive_design": [
+      { "max_width": "768px", "label": "mobile", "description": "Single column; full-width cards" },
+      { "min_width": "768px", "label": "tablet", "description": "Two column layout" },
+      { "min_width": "1024px", "label": "desktop", "description": "Max-width 1200px centered container" }
+    ]
+  },
+
+  "tests": {
+    "unit_tests": [
+      {
+        "module_id": "TaskService",
+        "interface_id": "create_task",
+        "test_cases": [
+          {
+            "id": "UT-01",
+            "description": "Create task with valid title",
+            "given": { "user": "existing user with id=abc", "input": { "title": "Buy milk", "due_date": "2026-06-01T00:00:00Z" } },
+            "then": {
+              "title": "Buy milk",
+              "completed": false,
+              "id": "UUID pattern"
+            },
+            "expected_side_effects": ["Task was persisted via repository.save"]
+          },
+          {
+            "id": "UT-02",
+            "description": "Create task with empty title throws error",
+            "given": { "input": { "title": "" } },
+            "expected_exception": "ValidationError"
+          }
+        ]
+      }
+    ],
+    "integration_tests": [
+      {
+        "id": "IT-01",
+        "description": "Full task creation flow via API",
+        "steps": [
+          "Authenticate with valid JWT",
+          "POST /api/v1/tasks with { title: 'Test task' }",
+          "Verify response status is 201",
+          "Verify response body contains id, title='Test task', completed=false"
+        ],
+        "expected_result": "Task is created and persisted; GET /api/v1/tasks includes the new task."
+      }
+    ],
+    "acceptance_criteria": [
+      "All unit tests pass",
+      "All integration tests pass",
+      "App works in Chrome, Firefox, and Safari",
+      "Page load time < 200ms"
+    ]
+  },
+
+  "reconstruction_rules": {
+    "reconstruction_fidelity": "production_equivalent",
+    "tech_constraints": {
+      "language_family": "javascript",
+      "runtime": "node",
+      "persistence_model": "relational",
+      "protocol": "http",
+      "concurrency_model": "async",
+      "allowed_licenses": ["MIT", "Apache-2.0"],
+      "preferred_frameworks": ["React", "Vue", "Express"],
+      "env_variables": [
+        { "name": "DATABASE_URL", "description": "PostgreSQL connection string", "secret": true },
+        { "name": "JWT_SECRET", "description": "At least 256 bits", "secret": true },
+        { "name": "EMAIL_API_KEY", "description": "SendGrid API key", "secret": true }
+      ]
+    },
+    "directives": [
+      {
+        "priority": "must",
+        "directive": "All external API calls must go through an abstraction interface",
+        "rationale": "Ensures test substitutability and loose coupling"
+      },
+      {
+        "priority": "should",
+        "directive": "Use functional programming style for data transformations",
+        "rationale": "Reduces side effects and improves testability"
+      },
+      {
+        "priority": "may",
+        "directive": "Consider using a CSS utility framework like Tailwind for UI",
+        "rationale": "Speeds up development but not critical for functional equivalence"
+      }
+    ]
+  },
+
+  "dependencies": [
+    { "name": "bcrypt", "version": "^5.1.0", "type": "runtime", "purpose": "Password hashing" },
+    { "name": "jsonwebtoken", "version": "^9.0.0", "type": "runtime", "purpose": "JWT signing and verification" },
+    { "name": "jest", "version": "^29.0.0", "type": "dev", "purpose": "Test framework" }
+  ],
+
+  "deployment": {
+    "runtime": { "environment": "Node.js 22, Express", "minimum_versions": { "Node": "20" } },
+    "build_output": "Container image for backend; static files for frontend",
+    "deployment_steps": [
+      "Build static assets",
+      "Run database migrations",
+      "Start server behind a reverse proxy (nginx)"
+    ],
+    "configuration": [
+      { "name": "APP_TITLE", "description": "Application title", "default_value": "TaskFlow" },
+      { "name": "PORT", "description": "Server port", "default_value": "3000" }
+    ],
+    "scaling": { "description": "Web tier: horizontal scaling, stateless. Workers: independently scalable via message queue." },
+    "monitoring": "Health check endpoint at /health; structured JSON logging"
+  },
+
+  "resources": [
+    { "name": "database", "type": "database", "uri": "postgresql://localhost:5432/taskflow", "description": "Main application database" },
+    { "name": "cache", "type": "cache", "uri": "redis://localhost:6379", "description": "Session and hot-data cache" }
+  ]
+}

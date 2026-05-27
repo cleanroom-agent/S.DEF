@@ -1,0 +1,38 @@
+name: Main
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - name: Check TypeScript definitions
+        run: bun run check:schema:ts
+
+      - name: Check schema.json files are up to date
+        run: bun run check:schema:json
+
+      - name: Check schema examples are valid
+        run: bun run check:schema:examples
+
+      - name: Check docs format
+        run: bun run check:docs:format
+
+      - name: Check proposals are up to date
+        run: bun run check:proposals

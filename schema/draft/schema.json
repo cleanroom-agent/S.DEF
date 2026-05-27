@@ -1,0 +1,3487 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "ApiContract": {
+            "properties": {
+                "auth": {
+                    "description": "Auth requirement (e.g. \"bearer_jwt\", \"none\").",
+                    "type": "string"
+                },
+                "behavior": {
+                    "description": "Behavioral description.",
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "method": {
+                    "description": "HTTP method or protocol operation (e.g. \"POST\", \"GET\").",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "API path (e.g. \"/api/v1/tasks\").",
+                    "type": "string"
+                },
+                "rate_limit": {
+                    "description": "Rate limiting (e.g. \"100 req/min per user\").",
+                    "type": "string"
+                },
+                "request": {
+                    "$ref": "#/definitions/ApiRequest",
+                    "description": "Request specification."
+                },
+                "response": {
+                    "$ref": "#/definitions/Record%3Cstring%2CApiResponse%3E",
+                    "description": "Response specification keyed by status code."
+                },
+                "side_effects": {
+                    "description": "Side effects of this API call.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "method",
+                "path"
+            ],
+            "type": "object"
+        },
+        "ApiRequest": {
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cunknown%3E",
+                    "description": "Request body schema."
+                },
+                "headers": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Request headers."
+                },
+                "validation_rules": {
+                    "description": "Validation rules.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "ApiResponse": {
+            "properties": {
+                "body": {
+                    "description": "Response body type or schema."
+                },
+                "description": {
+                    "description": "Response description.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "Architecture": {
+            "description": "The Architecture describes the high-level structure of the software —\nlayers, modules, components, and communication patterns.",
+            "properties": {
+                "communication": {
+                    "description": "Communication patterns between parts of the system.",
+                    "items": {
+                        "$ref": "#/definitions/CommunicationPattern"
+                    },
+                    "type": "array"
+                },
+                "cross_cutting_concerns": {
+                    "description": "Cross-cutting concerns (logging, error handling, auth).",
+                    "items": {
+                        "$ref": "#/definitions/CrossCuttingConcern"
+                    },
+                    "type": "array"
+                },
+                "layers": {
+                    "description": "Structural layers.",
+                    "items": {
+                        "$ref": "#/definitions/ArchitectureLayer"
+                    },
+                    "type": "array"
+                },
+                "modules": {
+                    "description": "Modules — units of related functionality.",
+                    "items": {
+                        "$ref": "#/definitions/ArchitectureModule"
+                    },
+                    "type": "array"
+                },
+                "rationale": {
+                    "description": "Why this style was chosen.",
+                    "type": "string"
+                },
+                "style": {
+                    "description": "Architectural style (e.g. \"layered\", \"microservices\", \"event-driven\", \"hexagonal\").",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ArchitectureLayer": {
+            "properties": {
+                "components": {
+                    "description": "Components within this layer.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "ArchitectureModule": {
+            "properties": {
+                "components": {
+                    "description": "The components within this module.",
+                    "items": {
+                        "$ref": "#/definitions/ModuleComponent"
+                    },
+                    "type": "array"
+                },
+                "depends_on": {
+                    "description": "Other modules this module depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "exports": {
+                    "description": "What this module exports / provides.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "Unique module identifier.",
+                    "type": "string"
+                },
+                "responsibility": {
+                    "description": "What this module is responsible for.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "Author": {
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "Behavior": {
+            "description": "The Behavior section describes the dynamic aspects of the software:\nfunction signatures with pseudocode logic, complex multi-participant\nflows, and state machines.",
+            "properties": {
+                "flows": {
+                    "description": "Complex multi-step flows (orchestration level).",
+                    "items": {
+                        "$ref": "#/definitions/FlowSpec"
+                    },
+                    "type": "array"
+                },
+                "functions": {
+                    "description": "Function specifications.",
+                    "items": {
+                        "$ref": "#/definitions/FunctionSpec"
+                    },
+                    "type": "array"
+                },
+                "state_machines": {
+                    "description": "State machines for key entities.",
+                    "items": {
+                        "$ref": "#/definitions/StateMachine"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "BusinessConcept": {
+            "properties": {
+                "attributes": {
+                    "description": "Key attributes of this concept.",
+                    "items": {
+                        "$ref": "#/definitions/TypedAttribute"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "description": "Description of what this concept represents.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique identifier for this concept.",
+                    "type": "string"
+                },
+                "invariants": {
+                    "description": "Invariants that must always hold true.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "relationships": {
+                    "description": "Relationships to other business concepts.",
+                    "items": {
+                        "$ref": "#/definitions/ConceptRelationship"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "type": "object"
+        },
+        "BusinessProcess": {
+            "properties": {
+                "description": {
+                    "description": "Description.",
+                    "type": "string"
+                },
+                "exception_handling": {
+                    "description": "Exception handling scenarios.",
+                    "items": {
+                        "$ref": "#/definitions/ExceptionHandler"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Unique identifier.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Process name.",
+                    "type": "string"
+                },
+                "stages": {
+                    "description": "The stages of this process.",
+                    "items": {
+                        "$ref": "#/definitions/ProcessStage"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "type": "object"
+        },
+        "BusinessRule": {
+            "properties": {
+                "action": {
+                    "description": "The action to take when the condition is met.",
+                    "type": "string"
+                },
+                "condition": {
+                    "description": "The condition that triggers this rule.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description of the rule.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique identifier.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Rule name.",
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "Priority (e.g. \"high\", \"medium\", \"low\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "action",
+                "condition",
+                "id",
+                "name"
+            ],
+            "type": "object"
+        },
+        "ClassContract": {
+            "properties": {
+                "dependencies": {
+                    "description": "Other contracts this class depends on.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "implements": {
+                    "description": "Interfaces this class implements.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "methods": {
+                    "description": "Methods defined on this class.",
+                    "items": {
+                        "$ref": "#/definitions/ContractMethod"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "CommunicationPattern": {
+            "properties": {
+                "description": {
+                    "description": "Description (e.g. \"REST over HTTP\", \"RabbitMQ messages\").",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Sync or async pattern descriptor.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        },
+        "CompensationStrategy": {
+            "properties": {
+                "action": {
+                    "description": "Action to take for compensation.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description of compensation logic.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "action",
+                "description"
+            ],
+            "type": "object"
+        },
+        "ConceptRelationship": {
+            "properties": {
+                "cardinality": {
+                    "description": "Cardinality (e.g. \"1:1\", \"1:N\", \"M:N\").",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "Role of this relationship (e.g. \"created by\", \"contains\").",
+                    "type": "string"
+                },
+                "target": {
+                    "description": "Target business concept ID.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "role",
+                "target"
+            ],
+            "type": "object"
+        },
+        "ConfigurationVar": {
+            "properties": {
+                "default_value": {
+                    "description": "Default value.",
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "Constraint": {
+            "properties": {
+                "category": {
+                    "description": "Constraint category (e.g. \"performance\", \"compatibility\", \"security\").",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Constraint description.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "category",
+                "description"
+            ],
+            "type": "object"
+        },
+        "ContractMethod": {
+            "properties": {
+                "behavior": {
+                    "description": "Behavioral description in natural language.",
+                    "type": "string"
+                },
+                "errors": {
+                    "description": "Error cases.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "postconditions": {
+                    "description": "Conditions guaranteed true after execution.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "preconditions": {
+                    "description": "Conditions that must be true before calling.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "signature": {
+                    "description": "Method signature (e.g. \"create_task(input: CreateTaskInput) -> Task\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "signature"
+            ],
+            "type": "object"
+        },
+        "Contracts": {
+            "description": "The Contracts section defines the interfaces, classes, enums,\nand API endpoints that form the software's public contract.\n\nThis is the \"contract-first\" core: everything is described by its\ninput/output signatures, behavior, pre/post conditions, and error cases.",
+            "properties": {
+                "apis": {
+                    "description": "API endpoints (REST, gRPC, etc.).",
+                    "items": {
+                        "$ref": "#/definitions/ApiContract"
+                    },
+                    "type": "array"
+                },
+                "classes": {
+                    "description": "Concrete classes.",
+                    "items": {
+                        "$ref": "#/definitions/ClassContract"
+                    },
+                    "type": "array"
+                },
+                "enums": {
+                    "description": "Enumerations.",
+                    "items": {
+                        "$ref": "#/definitions/EnumContract"
+                    },
+                    "type": "array"
+                },
+                "interfaces": {
+                    "description": "Abstract interfaces.",
+                    "items": {
+                        "$ref": "#/definitions/InterfaceContract"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "CrossCuttingConcern": {
+            "properties": {
+                "description": {
+                    "description": "How it is addressed.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Concern name (e.g. \"logging\", \"error_handling\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description",
+                "name"
+            ],
+            "type": "object"
+        },
+        "DataAttribute": {
+            "properties": {
+                "constraints": {
+                    "description": "Constraints (e.g. \"max_length:200\", \"non_empty\").",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "default": {
+                    "description": "Default value."
+                },
+                "description": {
+                    "type": "string"
+                },
+                "format": {
+                    "description": "A format hint (e.g. \"email\", \"uri\", \"uuid\").",
+                    "type": "string"
+                },
+                "generated": {
+                    "description": "Whether this value is auto-generated.",
+                    "type": "boolean"
+                },
+                "identity": {
+                    "description": "Whether this is the identity / primary key.",
+                    "type": "boolean"
+                },
+                "internal": {
+                    "description": "Whether this is internal (not exposed to clients).",
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "description": "Logical type (e.g. \"UUID\", \"string\", \"boolean\", \"timestamp\", \"Decimal\").",
+                    "type": "string"
+                },
+                "unique": {
+                    "description": "Whether this value is unique.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "DataModel": {
+            "description": "A Data Model describes a data entity — its logical meaning,\nphysical representation, attributes, relationships, and validation rules.",
+            "properties": {
+                "attributes": {
+                    "description": "The attributes of this entity.",
+                    "items": {
+                        "$ref": "#/definitions/DataAttribute"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "description": "What this entity represents in the domain.",
+                    "type": "string"
+                },
+                "entity": {
+                    "description": "Entity name (e.g. \"User\", \"Order\").",
+                    "type": "string"
+                },
+                "logical_model": {
+                    "description": "The logical model — business meaning in natural language.",
+                    "type": "string"
+                },
+                "physical_design": {
+                    "$ref": "#/definitions/PhysicalDesign",
+                    "description": "Physical design hints (indexes, primary key)."
+                },
+                "relationships": {
+                    "description": "Relationships to other entities.",
+                    "items": {
+                        "$ref": "#/definitions/DataRelationship"
+                    },
+                    "type": "array"
+                },
+                "validation_rules": {
+                    "description": "Validation rules that apply to this entity.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "entity"
+            ],
+            "type": "object"
+        },
+        "DataRelationship": {
+            "properties": {
+                "foreign_key": {
+                    "description": "Foreign key column name.",
+                    "type": "string"
+                },
+                "join_table": {
+                    "description": "Join table for many-to-many.",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Relationship kind (e.g. \"belongs_to\", \"has_many\", \"many_to_many\").",
+                    "type": "string"
+                },
+                "on_delete": {
+                    "description": "On-delete behavior (e.g. \"cascade\", \"restrict\").",
+                    "type": "string"
+                },
+                "target": {
+                    "description": "Target entity name.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "kind",
+                "target"
+            ],
+            "type": "object"
+        },
+        "Dependency": {
+            "properties": {
+                "name": {
+                    "description": "Name of the dependency.",
+                    "type": "string"
+                },
+                "purpose": {
+                    "description": "Purpose of this dependency.",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "Where to obtain the dependency.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of dependency (e.g., runtime, build, dev).",
+                    "enum": [
+                        "build",
+                        "dev",
+                        "optional",
+                        "runtime"
+                    ],
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version constraint.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "Deployment": {
+            "properties": {
+                "build_output": {
+                    "description": "Build output description.",
+                    "type": "string"
+                },
+                "configuration": {
+                    "description": "Configuration variables.",
+                    "items": {
+                        "$ref": "#/definitions/ConfigurationVar"
+                    },
+                    "type": "array"
+                },
+                "deployment_steps": {
+                    "description": "Deployment steps.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "monitoring": {
+                    "description": "Monitoring requirements.",
+                    "type": "string"
+                },
+                "runtime": {
+                    "$ref": "#/definitions/RuntimeRequirement",
+                    "description": "Runtime requirements."
+                },
+                "scaling": {
+                    "$ref": "#/definitions/ScalingStrategy",
+                    "description": "Scaling strategy."
+                }
+            },
+            "type": "object"
+        },
+        "DesignDecision": {
+            "description": "A record of a design decision, its context, alternatives considered,\nrationale, and consequences.\n\nEvery significant architectural or design choice should be captured here.",
+            "properties": {
+                "alternatives": {
+                    "description": "Alternatives that were considered.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "consequences": {
+                    "description": "Consequences (both positive and negative).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "constraints": {
+                    "description": "Additional constraints imposed by this decision.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "context": {
+                    "description": "The context in which the decision was made.",
+                    "type": "string"
+                },
+                "decision": {
+                    "description": "The chosen approach.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique identifier for this decision.",
+                    "type": "string"
+                },
+                "rationale": {
+                    "description": "Why this approach was chosen.",
+                    "type": "string"
+                },
+                "topic": {
+                    "description": "The topic / area this decision applies to.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "decision",
+                "id",
+                "rationale",
+                "topic"
+            ],
+            "type": "object"
+        },
+        "Domain": {
+            "description": "The Domain Layer describes the business problem domain — the concepts,\nrules, and processes that the software models and automates.\n\nThis is the anchor for all other layers: code and data structures exist\nto operate on these business concepts.",
+            "properties": {
+                "business_concepts": {
+                    "description": "Business concepts — the nouns of the domain.",
+                    "items": {
+                        "$ref": "#/definitions/BusinessConcept"
+                    },
+                    "type": "array"
+                },
+                "business_processes": {
+                    "description": "Business processes — multi-stage workflows.",
+                    "items": {
+                        "$ref": "#/definitions/BusinessProcess"
+                    },
+                    "type": "array"
+                },
+                "business_rules": {
+                    "description": "Business rules — conditions and actions.",
+                    "items": {
+                        "$ref": "#/definitions/BusinessRule"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "EdgeCase": {
+            "properties": {
+                "condition": {
+                    "description": "The edge case condition.",
+                    "type": "string"
+                },
+                "expected_behavior": {
+                    "description": "Expected behavior.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "condition",
+                "expected_behavior"
+            ],
+            "type": "object"
+        },
+        "EnumContract": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "values": {
+                    "description": "Enumeration values.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "name",
+                "values"
+            ],
+            "type": "object"
+        },
+        "EnvironmentVariable": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secret": {
+                    "description": "Indicates this value is a secret.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "description",
+                "name"
+            ],
+            "type": "object"
+        },
+        "ExceptionHandler": {
+            "properties": {
+                "action": {
+                    "description": "The action to take.",
+                    "type": "string"
+                },
+                "scenario": {
+                    "description": "The scenario that triggers the exception.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "action",
+                "scenario"
+            ],
+            "type": "object"
+        },
+        "FlowErrorHandler": {
+            "properties": {
+                "action": {
+                    "description": "Action on error.",
+                    "type": "string"
+                },
+                "condition": {
+                    "description": "Error condition.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "action",
+                "condition"
+            ],
+            "type": "object"
+        },
+        "FlowParticipant": {
+            "properties": {
+                "role": {
+                    "description": "Role name (e.g. \"OrderService\").",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Participant type (e.g. \"service\", \"infrastructure\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "role",
+                "type"
+            ],
+            "type": "object"
+        },
+        "FlowSpec": {
+            "properties": {
+                "compensation": {
+                    "$ref": "#/definitions/CompensationStrategy",
+                    "description": "Compensation strategy if rollback is needed."
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Flow identifier.",
+                    "type": "string"
+                },
+                "level": {
+                    "description": "Orchestration or primitive level.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Flow name.",
+                    "type": "string"
+                },
+                "participants": {
+                    "description": "Participants in this flow.",
+                    "items": {
+                        "$ref": "#/definitions/FlowParticipant"
+                    },
+                    "type": "array"
+                },
+                "steps": {
+                    "description": "Step-by-step flow definition.",
+                    "items": {
+                        "$ref": "#/definitions/FlowStep"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "type": "object"
+        },
+        "FlowStep": {
+            "properties": {
+                "action": {
+                    "description": "Action description.",
+                    "type": "string"
+                },
+                "actor": {
+                    "description": "The participant performing this step.",
+                    "type": "string"
+                },
+                "error_handling": {
+                    "description": "Error handling for this step.",
+                    "items": {
+                        "$ref": "#/definitions/FlowErrorHandler"
+                    },
+                    "type": "array"
+                },
+                "input": {
+                    "description": "Input data.",
+                    "type": "string"
+                },
+                "output": {
+                    "description": "Output data.",
+                    "type": "string"
+                },
+                "step": {
+                    "description": "Step number (ordering).",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "action",
+                "actor",
+                "step"
+            ],
+            "type": "object"
+        },
+        "FunctionParam": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Logical type.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "FunctionSpec": {
+            "properties": {
+                "complexity": {
+                    "description": "Computational complexity (e.g. \"O(n)\").",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "What this function does.",
+                    "type": "string"
+                },
+                "edge_cases": {
+                    "description": "Edge cases and their expected behavior.",
+                    "items": {
+                        "$ref": "#/definitions/EdgeCase"
+                    },
+                    "type": "array"
+                },
+                "inputs": {
+                    "description": "Input parameters.",
+                    "items": {
+                        "$ref": "#/definitions/FunctionParam"
+                    },
+                    "type": "array"
+                },
+                "logic": {
+                    "description": "Pseudocode logic (using S.DEF standard pseudocode syntax).",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Function name.",
+                    "type": "string"
+                },
+                "outputs": {
+                    "description": "Output values.",
+                    "items": {
+                        "$ref": "#/definitions/FunctionParam"
+                    },
+                    "type": "array"
+                },
+                "pure_function": {
+                    "description": "Whether this function is pure (no side effects).",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "IndexDefinition": {
+            "properties": {
+                "fields": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "fields"
+            ],
+            "type": "object"
+        },
+        "IntegrationTest": {
+            "properties": {
+                "assertions": {
+                    "description": "Assertions.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "description": "What this test verifies.",
+                    "type": "string"
+                },
+                "expected_result": {
+                    "description": "Expected result.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique test ID.",
+                    "type": "string"
+                },
+                "steps": {
+                    "description": "Step-by-step scenario.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "description",
+                "id"
+            ],
+            "type": "object"
+        },
+        "InterfaceContract": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "invariants": {
+                    "description": "Invariants that all implementations must maintain.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "is_abstract": {
+                    "description": "Indicates this is abstract and must be implemented.",
+                    "type": "boolean"
+                },
+                "methods": {
+                    "description": "Methods defined on this interface.",
+                    "items": {
+                        "$ref": "#/definitions/ContractMethod"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "InterfaceSpec": {
+            "properties": {
+                "inputs": {
+                    "description": "Input parameters.",
+                    "items": {
+                        "$ref": "#/definitions/Parameter"
+                    },
+                    "type": "array"
+                },
+                "outputs": {
+                    "description": "Output results.",
+                    "items": {
+                        "$ref": "#/definitions/Parameter"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "ModuleComponent": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Component type (e.g. \"service\", \"controller\", \"repository\", \"model\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "Parameter": {
+            "properties": {
+                "default": {},
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "PhysicalDesign": {
+            "properties": {
+                "indexes": {
+                    "description": "Index definitions.",
+                    "items": {
+                        "$ref": "#/definitions/IndexDefinition"
+                    },
+                    "type": "array"
+                },
+                "primary_key": {
+                    "description": "Primary key field(s).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ProcessStage": {
+            "properties": {
+                "actions": {
+                    "description": "Actions performed in this stage.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "entry_condition": {
+                    "description": "Condition that triggers entry into this stage.",
+                    "type": "string"
+                },
+                "exit_condition": {
+                    "description": "Condition that must be met to exit this stage.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Human-readable name for this stage.",
+                    "type": "string"
+                },
+                "stage": {
+                    "description": "Stage identifier (e.g. \"creation\", \"payment\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "stage"
+            ],
+            "type": "object"
+        },
+        "ReconstructionDirective": {
+            "properties": {
+                "directive": {
+                    "description": "The directive content.",
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "Priority level: must, should, or may.",
+                    "enum": [
+                        "may",
+                        "must",
+                        "should"
+                    ],
+                    "type": "string"
+                },
+                "rationale": {
+                    "description": "Why this directive exists.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "directive",
+                "priority"
+            ],
+            "type": "object"
+        },
+        "ReconstructionRules": {
+            "description": "Reconstruction Rules guide the builder agent in how to reconstruct\nthe software from the S.DEF description.\n\nThis includes the target fidelity level, technology stack constraints,\nand priority-ordered directives.",
+            "properties": {
+                "directives": {
+                    "description": "Directives that guide the reconstruction process.",
+                    "items": {
+                        "$ref": "#/definitions/ReconstructionDirective"
+                    },
+                    "type": "array"
+                },
+                "reconstruction_fidelity": {
+                    "description": "Target reconstruction fidelity:\n- \"prototype\": Functional demo, fidelity not guaranteed\n- \"production_equivalent\": Functionally equivalent, similar quality\n- \"bit_identical\": Byte-for-byte identical output",
+                    "enum": [
+                        "bit_identical",
+                        "production_equivalent",
+                        "prototype"
+                    ],
+                    "type": "string"
+                },
+                "tech_constraints": {
+                    "$ref": "#/definitions/TechConstraints",
+                    "description": "Technology stack constraints."
+                }
+            },
+            "type": "object"
+        },
+        "Record<string,ApiResponse>": {
+            "type": "object"
+        },
+        "Record<string,Record<string,unknown>>": {
+            "type": "object"
+        },
+        "Record<string,UIVariable>": {
+            "type": "object"
+        },
+        "Record<string,string>": {
+            "type": "object"
+        },
+        "Record<string,string[]>": {
+            "type": "object"
+        },
+        "Record<string,unknown>": {
+            "type": "object"
+        },
+        "Resource": {
+            "properties": {
+                "description": {
+                    "description": "Description.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Resource name.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Resource type (e.g., database, file, endpoint).",
+                    "type": "string"
+                },
+                "uri": {
+                    "description": "URI identifying the resource.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "ResponsiveBreakpoint": {
+            "properties": {
+                "description": {
+                    "description": "Description of layout adjustments.",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "Label (e.g. \"mobile\", \"tablet\", \"desktop\").",
+                    "type": "string"
+                },
+                "max_width": {
+                    "description": "Max width for this breakpoint.",
+                    "type": "string"
+                },
+                "min_width": {
+                    "description": "Min width for this breakpoint.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description"
+            ],
+            "type": "object"
+        },
+        "RuntimeRequirement": {
+            "properties": {
+                "environment": {
+                    "description": "Runtime environment (e.g. \"modern web browser\", \"Node.js 22\").",
+                    "type": "string"
+                },
+                "minimum_versions": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Minimum versions."
+                }
+            },
+            "type": "object"
+        },
+        "ScalingStrategy": {
+            "properties": {
+                "description": {
+                    "description": "Strategy description (e.g. \"horizontal, stateless\").",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "SoftwareDefinition": {
+            "description": "The root object of any S.DEF document.\n\nContains all layers of software description: system boundary, domain model,\narchitecture, data models, contracts, behavior, UI, tests, design decisions,\nreconstruction rules, dependencies, and deployment requirements.",
+            "properties": {
+                "architecture": {
+                    "$ref": "#/definitions/Architecture",
+                    "description": "Architecture — structural layers, modules, and communication patterns."
+                },
+                "behavior": {
+                    "$ref": "#/definitions/Behavior",
+                    "description": "Behavior — functions, flows, and state machines."
+                },
+                "contracts": {
+                    "$ref": "#/definitions/Contracts",
+                    "description": "Contracts — interfaces, classes, enums, and API endpoints."
+                },
+                "data_models": {
+                    "description": "Data model — entities, their attributes, relationships, and validation rules.",
+                    "items": {
+                        "$ref": "#/definitions/DataModel"
+                    },
+                    "type": "array"
+                },
+                "dependencies": {
+                    "description": "External software dependencies (packages, services).",
+                    "items": {
+                        "$ref": "#/definitions/Dependency"
+                    },
+                    "type": "array"
+                },
+                "deployment": {
+                    "$ref": "#/definitions/Deployment",
+                    "description": "Deployment and runtime requirements."
+                },
+                "description": {
+                    "description": "Human-readable description.",
+                    "type": "string"
+                },
+                "design_decisions": {
+                    "description": "Design decisions with rationale.",
+                    "items": {
+                        "$ref": "#/definitions/DesignDecision"
+                    },
+                    "type": "array"
+                },
+                "domain": {
+                    "$ref": "#/definitions/Domain",
+                    "description": "Domain model — business concepts, rules, and processes."
+                },
+                "metadata": {
+                    "$ref": "#/definitions/SoftwareMetadata",
+                    "description": "Metadata associated with the software."
+                },
+                "name": {
+                    "description": "The software identifier (e.g. \"com.example.todoapp\").",
+                    "type": "string"
+                },
+                "reconstruction_rules": {
+                    "$ref": "#/definitions/ReconstructionRules",
+                    "description": "Reconstruction rules — fidelity target, technology constraints, and directives."
+                },
+                "resources": {
+                    "description": "Resources the software provides or consumes.",
+                    "items": {
+                        "$ref": "#/definitions/Resource"
+                    },
+                    "type": "array"
+                },
+                "sdef_version": {
+                    "description": "Schema version (date-based, e.g. \"2026-05-27\").",
+                    "type": "string"
+                },
+                "system_boundary": {
+                    "$ref": "#/definitions/SystemBoundary",
+                    "description": "System boundary — what the software does and does NOT do."
+                },
+                "tests": {
+                    "$ref": "#/definitions/TestContract",
+                    "description": "Test contracts — unit tests, integration tests, and acceptance criteria."
+                },
+                "ui": {
+                    "$ref": "#/definitions/UserInterface",
+                    "description": "User interface — screens, components, interactions, and navigation."
+                },
+                "version": {
+                    "description": "Version of the software being described.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "sdef_version"
+            ],
+            "type": "object"
+        },
+        "SoftwareInterface": {
+            "properties": {
+                "description": {
+                    "description": "Description of what this interface provides.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Unique name for this interface.",
+                    "type": "string"
+                },
+                "spec": {
+                    "$ref": "#/definitions/InterfaceSpec",
+                    "description": "The specification for this interface."
+                },
+                "type": {
+                    "description": "The type of interface (e.g., HTTP, gRPC, CLI, Library).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "SoftwareMetadata": {
+            "properties": {
+                "annotations": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cunknown%3E",
+                    "description": "Arbitrary annotations for extensibility."
+                },
+                "authors": {
+                    "description": "Author / maintainer information.",
+                    "items": {
+                        "$ref": "#/definitions/Author"
+                    },
+                    "type": "array"
+                },
+                "category": {
+                    "description": "Category (e.g. \"web_application\", \"library\", \"cli_tool\").",
+                    "type": "string"
+                },
+                "homepage": {
+                    "description": "Homepage URL.",
+                    "type": "string"
+                },
+                "license": {
+                    "description": "Software license identifier (SPDX).",
+                    "type": "string"
+                },
+                "repository": {
+                    "description": "Source code repository URL.",
+                    "type": "string"
+                },
+                "tags": {
+                    "description": "Tags for categorization.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "target_platforms": {
+                    "description": "Target platforms (e.g. \"web\", \"mobile\", \"desktop\", \"embedded\").",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "StateMachine": {
+            "properties": {
+                "entity": {
+                    "description": "The entity this state machine applies to.",
+                    "type": "string"
+                },
+                "states": {
+                    "description": "Possible states.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "transitions": {
+                    "description": "State transitions.",
+                    "items": {
+                        "$ref": "#/definitions/StateTransition"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "entity",
+                "states"
+            ],
+            "type": "object"
+        },
+        "StateTransition": {
+            "properties": {
+                "from": {
+                    "description": "Source state.",
+                    "type": "string"
+                },
+                "guard_conditions": {
+                    "description": "Guard conditions that must be true.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "to": {
+                    "description": "Target state.",
+                    "type": "string"
+                },
+                "trigger": {
+                    "description": "Event that triggers the transition.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "from",
+                "to"
+            ],
+            "type": "object"
+        },
+        "SystemBoundary": {
+            "description": "Defines the scope of the software — what it does, what it explicitly does NOT do,\nwho the target users are, and the success criteria.\n\nThe `non_goals` field is a critical guardrail: it prevents a reconstruction agent\nfrom over-implementing features that were intentionally excluded.",
+            "properties": {
+                "constraints": {
+                    "description": "Constraints (performance, compatibility, security, accessibility).",
+                    "items": {
+                        "$ref": "#/definitions/Constraint"
+                    },
+                    "type": "array"
+                },
+                "core_purpose": {
+                    "description": "The core purpose of the software in one sentence.",
+                    "type": "string"
+                },
+                "external_dependencies": {
+                    "description": "External dependencies at the system level (APIs, services).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "in_scope": {
+                    "description": "Features that are in scope.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "non_goals": {
+                    "description": "Features explicitly out of scope (prevents over-implementation).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "success_criteria": {
+                    "description": "Measurable success criteria (e.g. \"page load < 200ms\").",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "target_users": {
+                    "description": "Target user personas.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "core_purpose"
+            ],
+            "type": "object"
+        },
+        "TechConstraints": {
+            "properties": {
+                "allowed_licenses": {
+                    "description": "Allowed open-source licenses.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "concurrency_model": {
+                    "description": "Concurrency model (e.g. \"threaded\", \"async\", \"actor\").",
+                    "type": "string"
+                },
+                "env_variables": {
+                    "description": "Environment variables.",
+                    "items": {
+                        "$ref": "#/definitions/EnvironmentVariable"
+                    },
+                    "type": "array"
+                },
+                "language_family": {
+                    "description": "Target language family (e.g. \"jvm\", \"javascript\", \"python\", \"dotnet\").",
+                    "type": "string"
+                },
+                "persistence_model": {
+                    "description": "Data persistence model (e.g. \"relational\", \"document\", \"graph\", \"key_value\").",
+                    "type": "string"
+                },
+                "preferred_frameworks": {
+                    "description": "Preferred frameworks (optional suggestions).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "protocol": {
+                    "description": "Network protocol (e.g. \"http\", \"grpc\", \"websocket\").",
+                    "type": "string"
+                },
+                "runtime": {
+                    "description": "Target runtime (e.g. \"browser\", \"node\", \"jvm\").",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "TestContract": {
+            "description": "The Test Contract is the verification mechanism: it defines the tests\nthat a reconstructed software implementation must pass to be considered\nfunctionally equivalent to the original.\n\nTests are described as behavior specifications — given/when/then —\nwithout implementation code.",
+            "properties": {
+                "acceptance_criteria": {
+                    "description": "Acceptance criteria for the entire system.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "integration_tests": {
+                    "description": "Integration tests that span multiple components.",
+                    "items": {
+                        "$ref": "#/definitions/IntegrationTest"
+                    },
+                    "type": "array"
+                },
+                "unit_tests": {
+                    "description": "Unit tests organized by module/function.",
+                    "items": {
+                        "$ref": "#/definitions/UnitTestGroup"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "TypedAttribute": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Abstract type (e.g. \"UUID\", \"string\", \"boolean\", \"timestamp\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIAccessibility": {
+            "description": "Accessibility metadata for the element.",
+            "properties": {
+                "aria_label": {
+                    "description": "ARIA label for screen readers.",
+                    "type": "string"
+                },
+                "aria_role": {
+                    "description": "ARIA role.",
+                    "type": "string"
+                },
+                "keyboard_shortcut": {
+                    "description": "Keyboard shortcut.",
+                    "type": "string"
+                },
+                "screen_reader_text": {
+                    "description": "Screen reader description text.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "UIBaseElement": {
+            "description": "Base entity shared by all Pen visual elements.\nEvery element has a unique `id`, a `type`, and optional position/size.",
+            "properties": {
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIBehavior": {
+            "description": "Interaction behavior — a user action that triggers a business operation.",
+            "properties": {
+                "action": {
+                    "description": "Action to perform. Can be a contract reference or a built-in action.",
+                    "type": "string"
+                },
+                "on": {
+                    "description": "Event that triggers this behavior (e.g. \"click\", \"submit\", \"focus\", \"enter\").",
+                    "type": "string"
+                },
+                "on_error": {
+                    "$ref": "#/definitions/UIBehaviorOutcome",
+                    "description": "What happens on error."
+                },
+                "on_success": {
+                    "$ref": "#/definitions/UIBehaviorOutcome",
+                    "description": "What happens on success."
+                },
+                "parameters": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cunknown%3E",
+                    "description": "Parameters passed to the action."
+                }
+            },
+            "required": [
+                "action",
+                "on"
+            ],
+            "type": "object"
+        },
+        "UIBehaviorOutcome": {
+            "properties": {
+                "action": {
+                    "description": "Outcome action type (e.g. \"navigate\", \"refresh\", \"show_message\", \"close\").",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message for show_message actions.",
+                    "type": "string"
+                },
+                "target": {
+                    "description": "Target for navigation actions.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "UIComponent": {
+            "properties": {
+                "behaviors": {
+                    "description": "Behaviors / event handlers.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "bind_to": {
+                    "description": "Data binding (e.g. \"bind_to\": \"completed\").",
+                    "type": "string"
+                },
+                "children": {
+                    "description": "Sub-components (for compound components).",
+                    "items": {
+                        "$ref": "#/definitions/UIComponent"
+                    },
+                    "type": "array"
+                },
+                "content": {
+                    "description": "Content or placeholder text.",
+                    "type": "string"
+                },
+                "events": {
+                    "description": "Events this component emits.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "placeholder": {
+                    "description": "Placeholder text for inputs.",
+                    "type": "string"
+                },
+                "props": {
+                    "description": "Props / data this component receives.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "states": {
+                    "description": "Visual states (e.g. \"normal\", \"completed\", \"overdue\").",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "style": {
+                    "description": "Style guidance (not CSS).",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Component type (e.g. \"text\", \"button\", \"input\", \"list\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIComponentType": {
+            "properties": {
+                "component_id": {
+                    "description": "Component identifier.",
+                    "type": "string"
+                },
+                "data_requirements": {
+                    "description": "Required data schema.",
+                    "type": "string"
+                },
+                "interaction_rules": {
+                    "description": "Interaction rules for this component type.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "type": {
+                    "description": "Component type (e.g. \"form\", \"list\", \"dashboard\", \"workflow\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "component_id"
+            ],
+            "type": "object"
+        },
+        "UIDataBinding": {
+            "description": "Data binding — links a UI element property to a data entity field.\nEnables one-way (display) or two-way (edit) data flow.",
+            "properties": {
+                "direction": {
+                    "description": "Binding direction: \"one_way\" (read only) or \"two_way\" (read/write).",
+                    "enum": [
+                        "one_way",
+                        "two_way"
+                    ],
+                    "type": "string"
+                },
+                "entity": {
+                    "description": "The entity name (matches a DataModel.entity).",
+                    "type": "string"
+                },
+                "field": {
+                    "description": "The entity field name.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "entity",
+                "field"
+            ],
+            "type": "object"
+        },
+        "UIDesignMotion": {
+            "properties": {
+                "durations": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Duration tokens (e.g. `\"duration.fast\": \"150ms\"`)."
+                },
+                "easings": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Easing curve tokens."
+                }
+            },
+            "type": "object"
+        },
+        "UIDesignSystem": {
+            "description": "A Design System defines the atomic visual primitives — colors, typography,\nspacing, shadows, motion, border radius — as named tokens that everything\nelse references.\n\nInspired by the Pen format's variable system.",
+            "properties": {
+                "border_radius": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Border radius tokens."
+                },
+                "colors": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Color tokens. Values can be hex colors, or references to other tokens via `$name`."
+                },
+                "motion": {
+                    "$ref": "#/definitions/UIDesignMotion",
+                    "description": "Motion / animation tokens."
+                },
+                "shadows": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Shadow tokens."
+                },
+                "spacing": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Spacing tokens (e.g. `\"spacing.sm\": \"8px\"`)."
+                },
+                "themes": {
+                    "description": "Theme configurations (e.g. light/dark).",
+                    "items": {
+                        "$ref": "#/definitions/UIDesignTheme"
+                    },
+                    "type": "array"
+                },
+                "typography": {
+                    "$ref": "#/definitions/UIDesignTypography",
+                    "description": "Typography tokens."
+                }
+            },
+            "type": "object"
+        },
+        "UIDesignTheme": {
+            "properties": {
+                "name": {
+                    "description": "Theme name (e.g. \"light\", \"dark\").",
+                    "type": "string"
+                },
+                "overrides": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Token overrides for this theme. Key = token name, value = new value."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "UIDesignTypography": {
+            "properties": {
+                "font_families": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Font family tokens."
+                },
+                "font_sizes": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Font size tokens."
+                },
+                "font_weights": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Font weight tokens."
+                },
+                "line_heights": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Line height tokens."
+                }
+            },
+            "type": "object"
+        },
+        "UIDocument": {
+            "description": "A Pen-compatible UI document — a JSON object tree similar to SVG/HTML\nbut designed for UI design tools and AI consumption.\n\nCompatible with the [Pen format](https://docs.pencil.dev/for-developers/the-pen-format).\nAll visual elements extend `UIBaseElement`.\n\nS.DEF adds semantic extension fields prefixed with `sdef` to standard Pen\nelements — these are ignored by standard Pen parsers but provide essential\ncontext for AI agents (data binding, behaviors, states, accessibility, tests).",
+            "properties": {
+                "children": {
+                    "description": "Top-level visual elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "themes": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%5B%5D%3E",
+                    "description": "Theme axis definitions (Pen-compatible)."
+                },
+                "variables": {
+                    "$ref": "#/definitions/Record%3Cstring%2CUIVariable%3E",
+                    "description": "Document variables (Pen-compatible)."
+                },
+                "version": {
+                    "description": "Pen format version (e.g. \"2.11\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "children"
+            ],
+            "type": "object"
+        },
+        "UIEllipse": {
+            "description": "Ellipse shape element.",
+            "properties": {
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "innerRadius": {
+                    "description": "Inner radius ratio (0=solid, 1=hollow ring).",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "const": "ellipse",
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIFrame": {
+            "description": "Container element with flexbox layout.\nAnalogous to Pen's `frame` type.",
+            "properties": {
+                "alignItems": {
+                    "description": "Cross-axis alignment (\"start\", \"center\", \"end\").",
+                    "type": "string"
+                },
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "clip": {
+                    "description": "Clip overflow.",
+                    "type": "boolean"
+                },
+                "cornerRadius": {
+                    "description": "Corner radius for rounded corners.",
+                    "type": "integer"
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "gap": {
+                    "description": "Gap between children.",
+                    "type": "integer"
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "justifyContent": {
+                    "description": "Main-axis alignment (\"start\", \"center\", \"end\", \"space_between\", \"space_around\").",
+                    "type": "string"
+                },
+                "layout": {
+                    "description": "Flex layout direction (\"vertical\", \"horizontal\", \"none\").",
+                    "enum": [
+                        "horizontal",
+                        "none",
+                        "vertical"
+                    ],
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "padding": {
+                    "anyOf": [
+                        {
+                            "items": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "maxItems": 2,
+                            "minItems": 2,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ],
+                            "maxItems": 4,
+                            "minItems": 4,
+                            "type": "array"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Padding."
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "slot": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "boolean"
+                        }
+                    ],
+                    "description": "Mark as a slot for component instances. Array = recommended component IDs."
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "const": "frame",
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIIconFont": {
+            "description": "Icon from an icon font library (e.g. Lucide, Material Symbols).",
+            "properties": {
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "icon": {
+                    "description": "Icon name within the library.",
+                    "type": "string"
+                },
+                "iconFontFamily": {
+                    "description": "Icon library (e.g. \"lucide\", \"material_symbols\").",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "const": "icon_font",
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "weight": {
+                    "description": "Icon weight (for variable-weight fonts).",
+                    "type": "integer"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIInteraction": {
+            "properties": {
+                "action": {
+                    "description": "Action performed.",
+                    "type": "string"
+                },
+                "on_error": {
+                    "description": "Description on error.",
+                    "type": "string"
+                },
+                "on_success": {
+                    "description": "Description on success.",
+                    "type": "string"
+                },
+                "trigger": {
+                    "description": "What triggers this interaction.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "action",
+                "trigger"
+            ],
+            "type": "object"
+        },
+        "UINavNode": {
+            "properties": {
+                "badge": {
+                    "description": "Badge binding (e.g. \"cart_item_count\").",
+                    "type": "string"
+                },
+                "children": {
+                    "description": "Child navigation nodes.",
+                    "items": {
+                        "$ref": "#/definitions/UINavNode"
+                    },
+                    "type": "array"
+                },
+                "icon": {
+                    "description": "Icon identifier.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Node identifier.",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "Display label.",
+                    "type": "string"
+                },
+                "route": {
+                    "description": "Route path.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "type": "object"
+        },
+        "UINavTarget": {
+            "description": "Navigation target when this element is activated.",
+            "properties": {
+                "parameters": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Parameters to pass."
+                },
+                "target_screen": {
+                    "description": "Target screen ID or route.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "UINavTransition": {
+            "properties": {
+                "animation": {
+                    "description": "Transition animation.",
+                    "type": "string"
+                },
+                "duration": {
+                    "description": "Duration (e.g. \"250ms\").",
+                    "type": "string"
+                },
+                "from": {
+                    "description": "Source state.",
+                    "type": "string"
+                },
+                "to": {
+                    "description": "Target state.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "UINavigation": {
+            "description": "Application navigation structure — routes, screens, and transitions.",
+            "properties": {
+                "nodes": {
+                    "description": "Navigation nodes forming the navigation tree.",
+                    "items": {
+                        "$ref": "#/definitions/UINavNode"
+                    },
+                    "type": "array"
+                },
+                "transitions": {
+                    "description": "Global navigation transitions.",
+                    "items": {
+                        "$ref": "#/definitions/UINavTransition"
+                    },
+                    "type": "array"
+                },
+                "type": {
+                    "description": "Type of navigation model (\"hierarchical\", \"flat\", \"tab\").",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "UINode": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/UIFrame"
+                },
+                {
+                    "$ref": "#/definitions/UIBaseElement"
+                },
+                {
+                    "$ref": "#/definitions/UIText"
+                },
+                {
+                    "$ref": "#/definitions/UIRectangle"
+                },
+                {
+                    "$ref": "#/definitions/UIEllipse"
+                },
+                {
+                    "$ref": "#/definitions/UIPath"
+                },
+                {
+                    "$ref": "#/definitions/UIRef"
+                },
+                {
+                    "$ref": "#/definitions/UIIconFont"
+                }
+            ]
+        },
+        "UIPath": {
+            "description": "Path (SVG path) element.",
+            "properties": {
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "fillRule": {
+                    "description": "Fill rule (\"nonzero\", \"evenodd\").",
+                    "enum": [
+                        "evenodd",
+                        "nonzero"
+                    ],
+                    "type": "string"
+                },
+                "geometry": {
+                    "description": "SVG path geometry string.",
+                    "type": "string"
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "const": "path",
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIRectangle": {
+            "description": "Rectangle shape element.",
+            "properties": {
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "cornerRadius": {
+                    "description": "Corner radius.",
+                    "type": "integer"
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "const": "rectangle",
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIRef": {
+            "description": "Instance of a reusable component — references another element by `id`.\nAnalogous to Pen's `ref` type.",
+            "properties": {
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "descendants": {
+                    "$ref": "#/definitions/Record%3Cstring%2CRecord%3Cstring%2Cunknown%3E%3E",
+                    "description": "Property overrides for descendant elements."
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "ref": {
+                    "description": "ID of the referenced (reusable) element.",
+                    "type": "string"
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "const": "ref",
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "ref",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIScreen": {
+            "description": "For simpler use cases, screens describe UI with semantic intent, not pixels.",
+            "properties": {
+                "components": {
+                    "description": "Components on this screen.",
+                    "items": {
+                        "$ref": "#/definitions/UIComponent"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Screen identifier.",
+                    "type": "string"
+                },
+                "interactions": {
+                    "description": "User interactions.",
+                    "items": {
+                        "$ref": "#/definitions/UIInteraction"
+                    },
+                    "type": "array"
+                },
+                "layout": {
+                    "description": "Layout description.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Screen name.",
+                    "type": "string"
+                },
+                "purpose": {
+                    "description": "Purpose of this screen.",
+                    "type": "string"
+                },
+                "route": {
+                    "description": "Route (e.g. \"/tasks\", \"/tasks/:id\").",
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/UIState",
+                    "description": "Screen-level state."
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "type": "object"
+        },
+        "UIState": {
+            "properties": {
+                "global": {
+                    "description": "Global state variables.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "local": {
+                    "description": "Local state variables.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "UIStroke": {
+            "properties": {
+                "align": {
+                    "description": "Stroke alignment (\"inside\", \"center\", \"outside\").",
+                    "type": "string"
+                },
+                "fill": {
+                    "description": "Stroke fill (color)."
+                },
+                "thickness": {
+                    "description": "Stroke thickness.",
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
+        "UIText": {
+            "description": "Text element with typography controls.",
+            "properties": {
+                "children": {
+                    "description": "Child elements.",
+                    "items": {
+                        "$ref": "#/definitions/UINode"
+                    },
+                    "type": "array"
+                },
+                "content": {
+                    "description": "The text content."
+                },
+                "effect": {
+                    "description": "Effect(s) — blur, shadow, etc."
+                },
+                "enabled": {
+                    "description": "Whether this element is enabled/visible.",
+                    "type": "boolean"
+                },
+                "fill": {
+                    "description": "Fill(s) — solid color, gradient, or image."
+                },
+                "fontFamily": {
+                    "description": "Font family.",
+                    "type": "string"
+                },
+                "fontSize": {
+                    "description": "Font size.",
+                    "type": "integer"
+                },
+                "fontWeight": {
+                    "description": "Font weight."
+                },
+                "height": {
+                    "description": "Height."
+                },
+                "id": {
+                    "description": "Unique string identifier within the document.",
+                    "type": "string"
+                },
+                "lineHeight": {
+                    "description": "Line height (multiplier of fontSize).",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Human-readable name.",
+                    "type": "string"
+                },
+                "opacity": {
+                    "description": "Opacity (0-1).",
+                    "type": "integer"
+                },
+                "placeholder": {
+                    "description": "Placeholder text when content is empty.",
+                    "type": "string"
+                },
+                "reusable": {
+                    "description": "When true, this element becomes a reusable component.",
+                    "type": "boolean"
+                },
+                "rotation": {
+                    "description": "Rotation in degrees CCW.",
+                    "type": "integer"
+                },
+                "sdefAccessibility": {
+                    "$ref": "#/definitions/UIAccessibility",
+                    "description": "Accessibility requirements."
+                },
+                "sdefBehaviors": {
+                    "description": "Interaction behaviors — user actions that trigger business logic.",
+                    "items": {
+                        "$ref": "#/definitions/UIBehavior"
+                    },
+                    "type": "array"
+                },
+                "sdefBindings": {
+                    "description": "Data binding — links this element to a data model entity field.",
+                    "items": {
+                        "$ref": "#/definitions/UIDataBinding"
+                    },
+                    "type": "array"
+                },
+                "sdefNavigation": {
+                    "$ref": "#/definitions/UINavTarget",
+                    "description": "Navigation target when this element is activated."
+                },
+                "sdefStates": {
+                    "description": "Visual states — how this element changes under different conditions.",
+                    "items": {
+                        "$ref": "#/definitions/UIVisualState"
+                    },
+                    "type": "array"
+                },
+                "sdefTestHook": {
+                    "description": "Test hook identifier for automated UI testing.",
+                    "type": "string"
+                },
+                "stroke": {
+                    "$ref": "#/definitions/UIStroke",
+                    "description": "Stroke (border)."
+                },
+                "textAlign": {
+                    "description": "Text alignment (\"left\", \"center\", \"right\").",
+                    "type": "string"
+                },
+                "textDecoration": {
+                    "description": "Text decoration: \"underline\", \"strikethrough\".",
+                    "type": "string"
+                },
+                "theme": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cstring%3E",
+                    "description": "Theme configuration applied to this element and its children."
+                },
+                "type": {
+                    "const": "text",
+                    "description": "Element type: \"frame\", \"rectangle\", \"ellipse\", \"path\", \"text\", \"ref\", \"icon_font\", \"group\".",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width (number, or sizing behavior like \"fill_container\", \"fit_content\")."
+                },
+                "x": {
+                    "description": "X position relative to parent top-left.",
+                    "type": "integer"
+                },
+                "y": {
+                    "description": "Y position relative to parent top-left.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UIVariable": {
+            "properties": {
+                "type": {
+                    "enum": [
+                        "boolean",
+                        "color",
+                        "number",
+                        "string"
+                    ],
+                    "type": "string"
+                },
+                "value": {}
+            },
+            "required": [
+                "type",
+                "value"
+            ],
+            "type": "object"
+        },
+        "UIVisualState": {
+            "description": "Visual state — how the element changes under a specific condition.",
+            "properties": {
+                "condition": {
+                    "$ref": "#/definitions/UIVisualStateCondition",
+                    "description": "Condition that triggers this state."
+                },
+                "name": {
+                    "description": "State name (e.g. \"loading\", \"error\", \"disabled\", \"active\", \"hover\").",
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/Record%3Cstring%2Cunknown%3E",
+                    "description": "Property overrides when this state is active."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "UIVisualStateCondition": {
+            "properties": {
+                "binding": {
+                    "description": "The binding field to evaluate.",
+                    "type": "string"
+                },
+                "operator": {
+                    "description": "Comparison operator.",
+                    "enum": [
+                        "contains",
+                        "equals",
+                        "greater_than",
+                        "less_than",
+                        "not_equals"
+                    ],
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Comparison value."
+                }
+            },
+            "type": "object"
+        },
+        "UnitTestCase": {
+            "properties": {
+                "description": {
+                    "description": "What this test verifies.",
+                    "type": "string"
+                },
+                "expected_exception": {
+                    "description": "Expected exception.",
+                    "type": "string"
+                },
+                "expected_side_effects": {
+                    "description": "Expected side effects.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "given": {
+                    "description": "Preconditions / setup."
+                },
+                "id": {
+                    "description": "Unique test ID.",
+                    "type": "string"
+                },
+                "then": {
+                    "description": "Expected results."
+                },
+                "when": {
+                    "description": "The action being tested.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description",
+                "id"
+            ],
+            "type": "object"
+        },
+        "UnitTestGroup": {
+            "properties": {
+                "interface_id": {
+                    "description": "The interface/function this group tests.",
+                    "type": "string"
+                },
+                "module_id": {
+                    "description": "The module this group tests.",
+                    "type": "string"
+                },
+                "test_cases": {
+                    "description": "Individual test cases.",
+                    "items": {
+                        "$ref": "#/definitions/UnitTestCase"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "UserInterface": {
+            "description": "The UI section describes the user-facing aspects of the software.\n\n**Three layers of UI description (choose one or combine):**\n\n1. **Design System** (`design_system`) — design tokens, colors, typography,\n   spacing, shadows, themes. Higher-level than raw CSS; reusable across screens.\n   Adapted from the Pen format's variable system.\n\n2. **Pen-compatible Visual Document** (`document`) — a JSON object tree\n   compatible with the [Pen format](https://docs.pencil.dev/for-developers/the-pen-format).\n   Uses flexbox layout, fills/strokes/effects, components+instances+slots.\n   Best for pixel-level visual fidelity. Extended with S.DEF semantic fields\n   (`sdefBindings`, `sdefBehaviors`, `sdefStates`, etc.).\n\n3. **Abstract Screens** (`screens`) — simplified semantic screen descriptions\n   without pixel values. Best for intent-level descriptions and quick prototyping.",
+            "properties": {
+                "component_taxonomy": {
+                    "description": "Component taxonomy (reusable component library).",
+                    "items": {
+                        "$ref": "#/definitions/UIComponentType"
+                    },
+                    "type": "array"
+                },
+                "design_system": {
+                    "$ref": "#/definitions/UIDesignSystem",
+                    "description": "Design system — tokens, themes, and style primitives (adapted from the Pen format)."
+                },
+                "document": {
+                    "$ref": "#/definitions/UIDocument",
+                    "description": "Pen-compatible visual document with S.DEF extensions."
+                },
+                "navigation": {
+                    "$ref": "#/definitions/UINavigation",
+                    "description": "Navigation definition."
+                },
+                "responsive_design": {
+                    "description": "Responsive design breakpoints.",
+                    "items": {
+                        "$ref": "#/definitions/ResponsiveBreakpoint"
+                    },
+                    "type": "array"
+                },
+                "screens": {
+                    "description": "Abstract screen definitions — simpler, intent-focused.",
+                    "items": {
+                        "$ref": "#/definitions/UIScreen"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        }
+    }
+}
+

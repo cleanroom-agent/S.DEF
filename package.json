@@ -1,0 +1,57 @@
+{
+  "name": "@sdef/specification",
+  "version": "0.0.1",
+  "description": "Software Definition Exchange Format (S.DEF) specification and protocol schema",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "homepage": "https://sdef.dev",
+  "bugs": "https://github.com/cleanroom-agent/S.DEF/issues",
+  "engines": {
+    "node": ">=20"
+  },
+  "prettier": {
+    "overrides": [
+      {
+        "files": "*.{md,mdx}",
+        "options": {
+          "proseWrap": "preserve"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "generate": "bun run generate:schema && bun run generate:proposals",
+    "generate:schema": "bun run generate:schema:json & bun run generate:schema:md & wait",
+    "generate:schema:json": "tsx scripts/generate-schemas.ts",
+    "generate:schema:md": "cp -r schema/*/schema.mdx docs/specification/",
+    "generate:proposals": "tsx scripts/render-proposals.ts",
+
+    "format": "bun run format:docs && bun run format:schema",
+    "format:docs": "prettier --write \"**/*.{md,mdx}\" --ignore-path .prettierignore",
+    "format:schema": "prettier --write \"schema/**/*.ts\"",
+
+    "check": "bun run check:schema && bun run check:docs && bun run check:proposals",
+    "check:schema": "bun run check:schema:ts && bun run check:schema:json && bun run check:schema:examples && bun run check:schema:md",
+    "check:schema:ts": "tsc --noEmit && prettier --check \"schema/**/*.ts\"",
+    "check:schema:json": "tsx scripts/generate-schemas.ts --check",
+    "check:schema:examples": "tsx scripts/validate-examples.ts",
+    "check:schema:md": "diff -q schema/draft/schema.mdx docs/specification/draft/schema.mdx || exit 1",
+    "check:docs": "bun run check:docs:format",
+    "check:docs:format": "prettier --check \"**/*.{md,mdx}\"",
+    "check:proposals": "tsx scripts/render-proposals.ts --check",
+
+    "serve:docs": "cd docs && npx mint dev",
+
+    "prep": "bun run check:schema:ts && bun run generate && bun run check:docs && bun run check:proposals && bun run format"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "cheerio": "^1.2.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typedoc": "^0.28.0",
+    "typescript": "^5.0.0",
+    "typescript-json-schema": "^0.67.0"
+  }
+}

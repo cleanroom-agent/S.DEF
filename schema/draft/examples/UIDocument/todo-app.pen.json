@@ -1,0 +1,116 @@
+{
+  "version": "2.11",
+  "variables": {
+    "color.primary": { "type": "color", "value": "#2563EB" },
+    "color.background": { "type": "color", "value": "#FFFFFF" },
+    "color.text": { "type": "color", "value": "#111827" },
+    "spacing.lg": { "type": "number", "value": 16 }
+  },
+  "children": [
+    {
+      "id": "container",
+      "type": "frame",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 16,
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$color.background",
+      "children": [
+        {
+          "id": "title",
+          "type": "text",
+          "content": "My Tasks",
+          "fontSize": 24,
+          "fontWeight": "bold",
+          "fill": "$color.text"
+        },
+        {
+          "id": "add_button",
+          "type": "frame",
+          "width": 80,
+          "height": 36,
+          "cornerRadius": 6,
+          "fill": "$color.primary",
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "add_button_text",
+              "type": "text",
+              "content": "Add",
+              "fill": "#FFFFFF"
+            }
+          ],
+          "sdefBehaviors": [
+            {
+              "on": "click",
+              "action": "create_task",
+              "parameters": { "title": "New Task" },
+              "on_success": { "action": "refresh" }
+            }
+          ],
+          "sdefTestHook": "add-button"
+        },
+        {
+          "id": "task_list",
+          "type": "frame",
+          "layout": "vertical",
+          "gap": 8,
+          "width": "fill_container",
+          "sdefBindings": [
+            { "entity": "Task", "field": "all", "direction": "one_way" }
+          ],
+          "children": [
+            {
+              "id": "task_item",
+              "type": "frame",
+              "reusable": true,
+              "layout": "horizontal",
+              "gap": 12,
+              "padding": [12, 16],
+              "cornerRadius": 8,
+              "stroke": { "thickness": 1, "fill": "#E5E7EB" },
+              "sdefTestHook": "todo-item",
+              "children": [
+                {
+                  "id": "checkbox",
+                  "type": "rectangle",
+                  "width": 20,
+                  "height": 20,
+                  "cornerRadius": 4,
+                  "stroke": { "thickness": 2, "fill": "$color.primary" },
+                  "sdefBindings": [
+                    { "entity": "Task", "field": "completed", "direction": "two_way" }
+                  ],
+                  "sdefStates": [
+                    {
+                      "name": "checked",
+                      "condition": { "binding": "completed", "operator": "equals", "value": true },
+                      "properties": { "fill": "$color.primary" }
+                    }
+                  ]
+                },
+                {
+                  "id": "task_title",
+                  "type": "text",
+                  "width": "fill_container",
+                  "sdefBindings": [
+                    { "entity": "Task", "field": "title", "direction": "one_way" }
+                  ],
+                  "sdefStates": [
+                    {
+                      "name": "completed",
+                      "condition": { "binding": "completed", "operator": "equals", "value": true },
+                      "properties": { "textDecoration": "line-through" }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

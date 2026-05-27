@@ -1,0 +1,98 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "S.DEF",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373"
+  },
+  "topbarCtaButton": {
+    "type": "github",
+    "url": "https://github.com/cleanroom-agent/S.DEF"
+  },
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/cleanroom-agent/S.DEF"
+    }
+  ],
+  "tabs": [
+    {
+      "tab": "Specification",
+      "pages": [
+        "specification/draft/index",
+        "specification/draft/changelog",
+        "specification/draft/schema"
+      ]
+    },
+    {
+      "tab": "Architecture",
+      "pages": [
+        "specification/draft/architecture/index"
+      ]
+    },
+    {
+      "tab": "Community",
+      "pages": [
+        "community/contributing",
+        "community/governance",
+        "community/design-principles",
+        "community/proposal-guidelines"
+      ]
+    },
+    {
+      "tab": "Development",
+      "pages": [
+        "development/roadmap"
+      ]
+    }
+  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Specification",
+        "pages": [
+          "specification/draft/index",
+          "specification/draft/changelog",
+          "specification/draft/schema"
+        ]
+      },
+      {
+        "tab": "Architecture",
+        "pages": [
+          "specification/draft/architecture/index"
+        ]
+      },
+      {
+        "tab": "Proposals",
+        "pages": [
+          "proposals/index"
+        ]
+      },
+      {
+        "tab": "Community",
+        "pages": [
+          "community/contributing",
+          "community/governance",
+          "community/design-principles",
+          "community/proposal-guidelines"
+        ]
+      },
+      {
+        "tab": "Development",
+        "pages": [
+          "development/roadmap"
+        ]
+      }
+    ]
+  },
+  "footerSocials": {
+    "github": "https://github.com/cleanroom-agent/S.DEF"
+  }
+}

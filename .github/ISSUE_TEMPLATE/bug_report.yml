@@ -1,0 +1,12 @@
+name: Bug Report
+description: Report an issue with the S.DEF specification or tooling
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Description
+      description: Describe the issue
+  - type: input
+    attributes:
+      label: Version
+      description: Which version of the spec are you using?
