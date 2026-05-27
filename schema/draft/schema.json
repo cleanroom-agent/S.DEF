@@ -1372,25 +1372,6 @@
             ],
             "type": "object"
         },
-        "InterfaceSpec": {
-            "properties": {
-                "inputs": {
-                    "description": "Input parameters.",
-                    "items": {
-                        "$ref": "#/definitions/Parameter"
-                    },
-                    "type": "array"
-                },
-                "outputs": {
-                    "description": "Output results.",
-                    "items": {
-                        "$ref": "#/definitions/Parameter"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        },
         "ModuleComponent": {
             "properties": {
                 "description": {
@@ -1401,28 +1382,6 @@
                 },
                 "type": {
                     "description": "Component type (e.g. \"service\", \"controller\", \"repository\", \"model\").",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "name",
-                "type"
-            ],
-            "type": "object"
-        },
-        "Parameter": {
-            "properties": {
-                "default": {},
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "required": {
-                    "type": "boolean"
-                },
-                "type": {
                     "type": "string"
                 }
             },
@@ -1739,31 +1698,6 @@
             "required": [
                 "name",
                 "sdef_version"
-            ],
-            "type": "object"
-        },
-        "SoftwareInterface": {
-            "properties": {
-                "description": {
-                    "description": "Description of what this interface provides.",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Unique name for this interface.",
-                    "type": "string"
-                },
-                "spec": {
-                    "$ref": "#/definitions/InterfaceSpec",
-                    "description": "The specification for this interface."
-                },
-                "type": {
-                    "description": "The type of interface (e.g., HTTP, gRPC, CLI, Library).",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "name",
-                "type"
             ],
             "type": "object"
         },

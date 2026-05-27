@@ -1469,7 +1469,7 @@ export interface ScalingStrategy {
 }
 
 // ============================================================================
-// Dependencies & Resources (enhanced from original)
+// Dependencies & Resources
 // ============================================================================
 
 export interface Dependency {
@@ -1494,34 +1494,4 @@ export interface Resource {
   uri?: string;
   /** Description. */
   description?: string;
-}
-
-// ============================================================================
-// Legacy / Existing Interface Types (preserved for compatibility)
-// ============================================================================
-
-export interface SoftwareInterface {
-  /** Unique name for this interface. */
-  name: string;
-  /** The type of interface (e.g., HTTP, gRPC, CLI, Library). */
-  type: string;
-  /** Description of what this interface provides. */
-  description?: string;
-  /** The specification for this interface. */
-  spec?: InterfaceSpec;
-}
-
-export interface InterfaceSpec {
-  /** Input parameters. */
-  inputs?: Parameter[];
-  /** Output results. */
-  outputs?: Parameter[];
-}
-
-export interface Parameter {
-  name: string;
-  type: string;
-  description?: string;
-  required?: boolean;
-  default?: unknown;
 }

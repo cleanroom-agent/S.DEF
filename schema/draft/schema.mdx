@@ -121,13 +121,9 @@ and generated into JSON Schema at [schema/draft/schema.json](https://github.com/
   - [`RuntimeRequirement`](#runtimerequirement)
   - [`ConfigurationVar`](#configurationvar)
   - [`ScalingStrategy`](#scalingstrategy)
-- [Dependencies & Resources (enhanced from original)](#dependencies-resources-enhanced-from-original)
+- [Dependencies & Resources](#dependencies-resources)
   - [`Dependency`](#dependency)
   - [`Resource`](#resource)
-- [Legacy / Existing Interface Types (preserved for compatibility)](#legacy-existing-interface-types-preserved-for-compatibility)
-  - [`SoftwareInterface`](#softwareinterface)
-  - [`InterfaceSpec`](#interfacespec)
-  - [`Parameter`](#parameter)
 
 ## Root Definition
 
@@ -1223,7 +1219,7 @@ and priority-ordered directives.
 | ------------- | -------- | -------- | ---------------------------------------------------- |
 | `description` | `string` | No       | Strategy description (e.g. "horizontal, stateless"). |
 
-## Dependencies & Resources (enhanced from original)
+## Dependencies & Resources
 
 ### `Dependency`
 
@@ -1243,31 +1239,3 @@ and priority-ordered directives.
 | `type`        | `string` | Yes      | Resource type (e.g., database, file, endpoint). |
 | `uri`         | `string` | No       | URI identifying the resource.                   |
 | `description` | `string` | No       | Description.                                    |
-
-## Legacy / Existing Interface Types (preserved for compatibility)
-
-### `SoftwareInterface`
-
-| Property      | Type            | Required | Description                                             |
-| ------------- | --------------- | -------- | ------------------------------------------------------- |
-| `name`        | `string`        | Yes      | Unique name for this interface.                         |
-| `type`        | `string`        | Yes      | The type of interface (e.g., HTTP, gRPC, CLI, Library). |
-| `description` | `string`        | No       | Description of what this interface provides.            |
-| `spec`        | `InterfaceSpec` | No       | The specification for this interface.                   |
-
-### `InterfaceSpec`
-
-| Property  | Type          | Required | Description       |
-| --------- | ------------- | -------- | ----------------- |
-| `inputs`  | `Parameter[]` | No       | Input parameters. |
-| `outputs` | `Parameter[]` | No       | Output results.   |
-
-### `Parameter`
-
-| Property      | Type      | Required | Description |
-| ------------- | --------- | -------- | ----------- |
-| `name`        | `string`  | Yes      | -           |
-| `type`        | `string`  | Yes      | -           |
-| `description` | `string`  | No       | -           |
-| `required`    | `boolean` | No       | -           |
-| `default`     | `unknown` | No       | -           |
