@@ -7,88 +7,1267 @@ and generated into JSON Schema at [schema/draft/schema.json](https://github.com/
 
 {/* @category SoftwareDefinition */}
 
-## SoftwareDefinition
+## Type Index
 
-The root object of any S.DEF document. It contains all layers of software description:
-system boundary, domain model, architecture, data models, contracts, behavior, UI,
-tests, design decisions, reconstruction rules, dependencies, and deployment.
+- [Root Definition](#root-definition)
+  - [`SoftwareDefinition`](#softwaredefinition)
+- [Metadata](#metadata)
+  - [`SoftwareMetadata`](#softwaremetadata)
+  - [`Author`](#author)
+- [System Boundary](#system-boundary)
+  - [`SystemBoundary`](#systemboundary)
+  - [`Constraint`](#constraint)
+- [Design Decisions](#design-decisions)
+  - [`DesignDecision`](#designdecision)
+- [Versioning & Compatibility](#versioning-compatibility)
+  - [`VersionRecord`](#versionrecord)
+  - [`DeprecationInfo`](#deprecationinfo)
+  - [`CompatibilityMapping`](#compatibilitymapping)
+  - [`DataMigration`](#datamigration)
+- [Domain Layer](#domain-layer)
+  - [`Domain`](#domain)
+  - [`BusinessConcept`](#businessconcept)
+  - [`TypedAttribute`](#typedattribute)
+  - [`ConceptRelationship`](#conceptrelationship)
+  - [`BusinessRule`](#businessrule)
+  - [`BusinessProcess`](#businessprocess)
+  - [`ProcessStage`](#processstage)
+  - [`ExceptionHandler`](#exceptionhandler)
+- [Architecture](#architecture)
+  - [`Architecture`](#architecture)
+  - [`ArchitectureLayer`](#architecturelayer)
+  - [`ArchitectureModule`](#architecturemodule)
+  - [`ModuleComponent`](#modulecomponent)
+  - [`CommunicationPattern`](#communicationpattern)
+  - [`CrossCuttingConcern`](#crosscuttingconcern)
+- [Data Models](#data-models)
+  - [`DataModel`](#datamodel)
+  - [`DataAttribute`](#dataattribute)
+  - [`DataRelationship`](#datarelationship)
+  - [`PhysicalDesign`](#physicaldesign)
+  - [`IndexDefinition`](#indexdefinition)
+- [Contracts](#contracts)
+  - [`Contracts`](#contracts)
+  - [`CompatibilityModule`](#compatibilitymodule)
+  - [`InterfaceContract`](#interfacecontract)
+  - [`ClassContract`](#classcontract)
+  - [`ContractMethod`](#contractmethod)
+  - [`EnumContract`](#enumcontract)
+  - [`ApiContract`](#apicontract)
+  - [`ApiRequest`](#apirequest)
+  - [`ApiResponse`](#apiresponse)
+- [Behavior](#behavior)
+  - [`Behavior`](#behavior)
+  - [`FunctionSpec`](#functionspec)
+  - [`FunctionParam`](#functionparam)
+  - [`EdgeCase`](#edgecase)
+  - [`FlowSpec`](#flowspec)
+  - [`FlowParticipant`](#flowparticipant)
+  - [`FlowStep`](#flowstep)
+  - [`FlowErrorHandler`](#flowerrorhandler)
+  - [`CompensationStrategy`](#compensationstrategy)
+  - [`StateMachine`](#statemachine)
+  - [`StateTransition`](#statetransition)
+- [User Interface](#user-interface)
+  - [`UserInterface`](#userinterface)
+- [Layer 1: Design System (Tokens & Themes)](#layer-1-design-system-tokens-themes)
+  - [`UIDesignSystem`](#uidesignsystem)
+  - [`UIDesignTypography`](#uidesigntypography)
+  - [`UIDesignMotion`](#uidesignmotion)
+  - [`UIDesignTheme`](#uidesigntheme)
+- [Layer 2: Pen-compatible Visual Document with S.DEF Extensions](#layer-2-pen-compatible-visual-document-with-s-def-extensions)
+  - [`UIDocument`](#uidocument)
+  - [`UIVariable`](#uivariable)
+  - [`UIBaseElement`](#uibaseelement)
+  - [`UIStroke`](#uistroke)
+  - [`UIDataBinding`](#uidatabinding)
+  - [`UIBehavior`](#uibehavior)
+  - [`UIBehaviorOutcome`](#uibehavioroutcome)
+  - [`UIVisualState`](#uivisualstate)
+  - [`UIVisualStateCondition`](#uivisualstatecondition)
+  - [`UIAccessibility`](#uiaccessibility)
+  - [`UINavTarget`](#uinavtarget)
+  - [`UIFrame`](#uiframe)
+  - [`UIText`](#uitext)
+  - [`UIRectangle`](#uirectangle)
+  - [`UIEllipse`](#uiellipse)
+  - [`UIPath`](#uipath)
+  - [`UIRef`](#uiref)
+  - [`UIIconFont`](#uiiconfont)
+- [Layer 3: Abstract Screens (simplified, semantic descriptions)](#layer-3-abstract-screens-simplified-semantic-descriptions)
+  - [`UIScreen`](#uiscreen)
+  - [`UIComponent`](#uicomponent)
+  - [`UIState`](#uistate)
+  - [`UIInteraction`](#uiinteraction)
+- [Navigation](#navigation)
+  - [`UINavigation`](#uinavigation)
+  - [`UINavNode`](#uinavnode)
+  - [`UINavTransition`](#uinavtransition)
+- [Responsive Design](#responsive-design)
+  - [`ResponsiveBreakpoint`](#responsivebreakpoint)
+  - [`UIComponentType`](#uicomponenttype)
+- [Test Contract](#test-contract)
+  - [`TestContract`](#testcontract)
+  - [`UnitTestGroup`](#unittestgroup)
+  - [`UnitTestCase`](#unittestcase)
+  - [`IntegrationTest`](#integrationtest)
+- [Reconstruction Rules](#reconstruction-rules)
+  - [`ReconstructionRules`](#reconstructionrules)
+  - [`TechConstraints`](#techconstraints)
+  - [`ReconstructionDirective`](#reconstructiondirective)
+  - [`EnvironmentVariable`](#environmentvariable)
+- [Deployment](#deployment)
+  - [`Deployment`](#deployment)
+  - [`RuntimeRequirement`](#runtimerequirement)
+  - [`ConfigurationVar`](#configurationvar)
+  - [`ScalingStrategy`](#scalingstrategy)
+- [Dependencies & Resources (enhanced from original)](#dependencies-resources-enhanced-from-original)
+  - [`Dependency`](#dependency)
+  - [`Resource`](#resource)
+- [Legacy / Existing Interface Types (preserved for compatibility)](#legacy-existing-interface-types-preserved-for-compatibility)
+  - [`SoftwareInterface`](#softwareinterface)
+  - [`InterfaceSpec`](#interfacespec)
+  - [`Parameter`](#parameter)
 
-```typescript
-interface SoftwareDefinition {
-  sdef_version: string;
-  name: string;
-  description?: string;
-  version?: string;
-  metadata?: SoftwareMetadata;
-  system_boundary?: SystemBoundary;
-  design_decisions?: DesignDecision[];
-  domain?: Domain;
-  architecture?: Architecture;
-  data_models?: DataModel[];
-  contracts?: Contracts;
-  behavior?: Behavior;
-  ui?: UserInterface;
-  tests?: TestContract;
-  reconstruction_rules?: ReconstructionRules;
-  dependencies?: Dependency[];
-  deployment?: Deployment;
-  resources?: Resource[];
-}
-```
+## Root Definition
 
-## Design Philosophy
+### `SoftwareDefinition`
 
-S.DEF captures **what** software does and **why** — not how it is implemented.
-Key principles:
+The root object of any S.DEF document.
+Contains all layers of software description: system boundary, domain model,
+architecture, data models, contracts, behavior, UI, tests, design decisions,
+reconstruction rules, dependencies, and deployment requirements.
 
-- **Zero code**: No executable code; algorithms use standard pseudocode
-- **Intent-first**: Design decisions with rationale are first-class citizens
-- **Language-agnostic**: Abstract data types, no language-specific syntax
-- **Boundary-explicit**: `non_goals` prevent over-implementation
-- **Layered abstraction**: From business domain → architecture → contracts → behavior → quality
-- **Verifiable**: Test contracts ensure reconstruction correctness
-- **Fidelity-targeted**: Declare reconstruction fidelity level (prototype / production_equivalent / bit_identical)
+| Property               | Type                  | Required | Description                                                                     |
+| ---------------------- | --------------------- | -------- | ------------------------------------------------------------------------------- |
+| `sdef_version`         | `string`              | Yes      | Schema version (date-based, e.g. "2026-05-27").                                 |
+| `name`                 | `string`              | Yes      | The software identifier (e.g. "com.example.todoapp").                           |
+| `description`          | `string`              | No       | Human-readable description.                                                     |
+| `version`              | `string`              | No       | Version of the software being described.                                        |
+| `metadata`             | `SoftwareMetadata`    | No       | Metadata associated with the software.                                          |
+| `system_boundary`      | `SystemBoundary`      | No       | System boundary — what the software does and does NOT do.                       |
+| `design_decisions`     | `DesignDecision[]`    | No       | Design decisions with rationale.                                                |
+| `version_history`      | `VersionRecord[]`     | No       | Version history — tracks the evolution of the software over time.               |
+| `domain`               | `Domain`              | No       | Domain model — business concepts, rules, and processes.                         |
+| `architecture`         | `Architecture`        | No       | Architecture — structural layers, modules, and communication patterns.          |
+| `data_models`          | `DataModel[]`         | No       | Data model — entities, their attributes, relationships, and validation rules.   |
+| `contracts`            | `Contracts`           | No       | Contracts — interfaces, classes, enums, and API endpoints.                      |
+| `behavior`             | `Behavior`            | No       | Behavior — functions, flows, and state machines.                                |
+| `ui`                   | `UserInterface`       | No       | User interface — screens, components, interactions, and navigation.             |
+| `tests`                | `TestContract`        | No       | Test contracts — unit tests, integration tests, and acceptance criteria.        |
+| `reconstruction_rules` | `ReconstructionRules` | No       | Reconstruction rules — fidelity target, technology constraints, and directives. |
+| `dependencies`         | `Dependency[]`        | No       | External software dependencies (packages, services).                            |
+| `deployment`           | `Deployment`          | No       | Deployment and runtime requirements.                                            |
+| `resources`            | `Resource[]`          | No       | Resources the software provides or consumes.                                    |
 
-## Layer Overview
+## Metadata
 
-| Layer     | Section                                    | Purpose                             |
-| --------- | ------------------------------------------ | ----------------------------------- |
-| Meta      | `sdef_version`, `name`, `metadata`         | Document identity                   |
-| Boundary  | `system_boundary`                          | What the software does and NOT do   |
-| Decisions | `design_decisions`                         | Why design choices were made        |
-| Domain    | `domain`                                   | Business concepts, rules, processes |
-| Structure | `architecture`, `data_models`, `contracts` | Static structure                    |
-| Behavior  | `behavior`, `ui`                           | Dynamic behavior                    |
-| Quality   | `tests`, `reconstruction_rules`            | Verification and guidance           |
-| Runtime   | `dependencies`, `deployment`, `resources`  | External deps and deployment        |
+### `SoftwareMetadata`
 
-## UI Architecture
+| Property               | Type                      | Required | Description                                                     |
+| ---------------------- | ------------------------- | -------- | --------------------------------------------------------------- |
+| `authors`              | `Author[]`                | No       | Author / maintainer information.                                |
+| `license`              | `string`                  | No       | Software license identifier (SPDX).                             |
+| `homepage`             | `string`                  | No       | Homepage URL.                                                   |
+| `repository`           | `string`                  | No       | Source code repository URL.                                     |
+| `category`             | `string`                  | No       | Category (e.g. "web_application", "library", "cli_tool").       |
+| `tags`                 | `string[]`                | No       | Tags for categorization.                                        |
+| `target_platforms`     | `string[]`                | No       | Target platforms (e.g. "web", "mobile", "desktop", "embedded"). |
+| `compatibility_policy` | `string`                  | No       | Compatibility policy (e.g. "none", "active", "full").           |
+| `annotations`          | `Record<string, unknown>` | No       | Arbitrary annotations for extensibility.                        |
 
-The `ui` section supports three layers (use one or combine):
+### `Author`
 
-| Layer            | Field           | Purpose                                          |
-| ---------------- | --------------- | ------------------------------------------------ |
-| Design System    | `design_system` | Tokens: colors, typography, spacing, themes      |
-| Visual Document  | `document`      | Pen-compatible object tree with S.DEF extensions |
-| Abstract Screens | `screens`       | Simplified semantic screen descriptions          |
+| Property | Type     | Required | Description |
+| -------- | -------- | -------- | ----------- |
+| `name`   | `string` | Yes      | -           |
+| `email`  | `string` | No       | -           |
+| `url`    | `string` | No       | -           |
 
-### Pen Compatibility
+## System Boundary
 
-The `document` field follows the [Pen format](https://docs.pencil.dev/for-developers/the-pen-format)
-object model:
+### `SystemBoundary`
 
-- **Elements**: `frame`, `text`, `rectangle`, `ellipse`, `path`, `ref`, `icon_font`
-- **Layout**: Flexbox-style (`layout`, `justifyContent`, `alignItems`, `gap`, `padding`)
-- **Components**: `reusable: true` + `type: "ref"` + `descendants` overrides + `slot`
-- **Variables**: Document-level `$variable` references with theme support
+Defines the scope of the software — what it does, what it explicitly does NOT do,
+who the target users are, and the success criteria.
+The `non_goals` field is a critical guardrail: it prevents a reconstruction agent
+from over-implementing features that were intentionally excluded.
 
-S.DEF adds semantic extensions (prefixed `sdef`) to standard Pen elements:
+| Property                | Type           | Required | Description                                                        |
+| ----------------------- | -------------- | -------- | ------------------------------------------------------------------ |
+| `core_purpose`          | `string`       | Yes      | The core purpose of the software in one sentence.                  |
+| `target_users`          | `string[]`     | No       | Target user personas.                                              |
+| `in_scope`              | `string[]`     | No       | Features that are in scope.                                        |
+| `non_goals`             | `string[]`     | No       | Features explicitly out of scope (prevents over-implementation).   |
+| `success_criteria`      | `string[]`     | No       | Measurable success criteria (e.g. "page load < 200ms").            |
+| `constraints`           | `Constraint[]` | No       | Constraints (performance, compatibility, security, accessibility). |
+| `external_dependencies` | `string[]`     | No       | External dependencies at the system level (APIs, services).        |
 
-| Extension           | Purpose                                              |
-| ------------------- | ---------------------------------------------------- |
-| `sdefBindings`      | Data binding to entity fields (one-way / two-way)    |
-| `sdefBehaviors`     | Interaction behaviors (click → action → outcome)     |
-| `sdefStates`        | Visual states with conditions (loading, error, etc.) |
-| `sdefAccessibility` | ARIA labels, roles, keyboard shortcuts               |
-| `sdefTestHook`      | Test automation identifier                           |
-| `sdefNavigation`    | Navigation target when element is activated          |
+### `Constraint`
+
+| Property      | Type     | Required | Description                                                            |
+| ------------- | -------- | -------- | ---------------------------------------------------------------------- |
+| `category`    | `string` | Yes      | Constraint category (e.g. "performance", "compatibility", "security"). |
+| `description` | `string` | Yes      | Constraint description.                                                |
+
+## Design Decisions
+
+### `DesignDecision`
+
+A record of a design decision, its context, alternatives considered,
+rationale, and consequences.
+Every significant architectural or design choice should be captured here.
+
+| Property       | Type       | Required | Description                                      |
+| -------------- | ---------- | -------- | ------------------------------------------------ |
+| `id`           | `string`   | Yes      | Unique identifier for this decision.             |
+| `topic`        | `string`   | Yes      | The topic / area this decision applies to.       |
+| `decision`     | `string`   | Yes      | The chosen approach.                             |
+| `rationale`    | `string`   | Yes      | Why this approach was chosen.                    |
+| `context`      | `string`   | No       | The context in which the decision was made.      |
+| `alternatives` | `string[]` | No       | Alternatives that were considered.               |
+| `consequences` | `string[]` | No       | Consequences (both positive and negative).       |
+| `constraints`  | `string[]` | No       | Additional constraints imposed by this decision. |
+
+## Versioning & Compatibility
+
+### `VersionRecord`
+
+A record of a software version, capturing what changed and how
+backward compatibility was (or wasn't) maintained.
+This enables consumer agents to understand the evolution of the software
+and make informed decisions about which compatibility layers to include.
+
+| Property              | Type       | Required | Description                                  |
+| --------------------- | ---------- | -------- | -------------------------------------------- |
+| `version`             | `string`   | Yes      | Version identifier (e.g. "1.0.0", "2.0.0").  |
+| `release_date`        | `string`   | No       | Release date.                                |
+| `deprecated`          | `boolean`  | No       | Whether this version is deprecated.          |
+| `eol_date`            | `string`   | No       | When this version reaches end-of-life.       |
+| `breaking_changes`    | `string[]` | No       | Breaking changes introduced in this version. |
+| `compatibility_notes` | `string`   | No       | Notes on backward compatibility.             |
+
+### `DeprecationInfo`
+
+Deprecation metadata — marks an interface, class, data entity, or method
+as superseded by a newer version.
+Consumer agents use this to decide whether to generate the element:
+
+- `include_compatibility: false` → skip all deprecated elements
+- `include_compatibility: true` → generate with deprecation annotations
+
+| Property          | Type     | Required | Description                                                                         |
+| ----------------- | -------- | -------- | ----------------------------------------------------------------------------------- |
+| `since_version`   | `string` | No       | Version in which this element was deprecated.                                       |
+| `replaced_by`     | `string` | No       | Reference to the element that replaces this one (e.g. entity name or interface ID). |
+| `removal_version` | `string` | No       | Version in which this element is planned (or was) removed.                          |
+| `migration_guide` | `string` | No       | Guidance for migrating from this element to its replacement.                        |
+
+### `CompatibilityMapping`
+
+Compatibility mapping — describes how a legacy element (API, data field)
+maps to the current version's equivalent.
+This is used by consumer agents when generating adapter/forwarder code.
+
+| Property          | Type                     | Required | Description                                            |
+| ----------------- | ------------------------ | -------- | ------------------------------------------------------ |
+| `maps_to`         | `string`                 | No       | The target element this one forwards to.               |
+| `field_mapping`   | `Record<string, string>` | No       | Mapping of legacy field names to current field names.  |
+| `transform_logic` | `string`                 | No       | Description of the transformation logic in pseudocode. |
+| `bidirectional`   | `boolean`                | No       | Whether the mapping is bidirectional.                  |
+
+### `DataMigration`
+
+Data migration specification — describes how to convert data
+from an older schema version to the current schema.
+
+| Property       | Type     | Required | Description                                    |
+| -------------- | -------- | -------- | ---------------------------------------------- |
+| `id`           | `string` | Yes      | Unique identifier.                             |
+| `description`  | `string` | No       | Description.                                   |
+| `from_entity`  | `string` | Yes      | Source entity name (old version).              |
+| `to_entity`    | `string` | Yes      | Target entity name (new version).              |
+| `from_version` | `string` | No       | Source version.                                |
+| `to_version`   | `string` | No       | Target version.                                |
+| `algorithm`    | `string` | No       | Pseudocode describing the migration algorithm. |
+
+## Domain Layer
+
+### `Domain`
+
+The Domain Layer describes the business problem domain — the concepts,
+rules, and processes that the software models and automates.
+This is the anchor for all other layers: code and data structures exist
+to operate on these business concepts.
+
+| Property             | Type                | Required | Description                                  |
+| -------------------- | ------------------- | -------- | -------------------------------------------- |
+| `business_concepts`  | `BusinessConcept[]` | No       | Business concepts — the nouns of the domain. |
+| `business_rules`     | `BusinessRule[]`    | No       | Business rules — conditions and actions.     |
+| `business_processes` | `BusinessProcess[]` | No       | Business processes — multi-stage workflows.  |
+
+### `BusinessConcept`
+
+| Property        | Type                    | Required | Description                                  |
+| --------------- | ----------------------- | -------- | -------------------------------------------- |
+| `id`            | `string`                | Yes      | Unique identifier for this concept.          |
+| `name`          | `string`                | Yes      | Human-readable name.                         |
+| `description`   | `string`                | No       | Description of what this concept represents. |
+| `attributes`    | `TypedAttribute[]`      | No       | Key attributes of this concept.              |
+| `relationships` | `ConceptRelationship[]` | No       | Relationships to other business concepts.    |
+| `invariants`    | `string[]`              | No       | Invariants that must always hold true.       |
+
+### `TypedAttribute`
+
+| Property      | Type     | Required | Description                                                    |
+| ------------- | -------- | -------- | -------------------------------------------------------------- |
+| `name`        | `string` | Yes      | -                                                              |
+| `type`        | `string` | Yes      | Abstract type (e.g. "UUID", "string", "boolean", "timestamp"). |
+| `description` | `string` | No       | -                                                              |
+| `domain`      | `string` | No       | -                                                              |
+
+### `ConceptRelationship`
+
+| Property      | Type     | Required | Description                                                |
+| ------------- | -------- | -------- | ---------------------------------------------------------- |
+| `role`        | `string` | Yes      | Role of this relationship (e.g. "created by", "contains"). |
+| `target`      | `string` | Yes      | Target business concept ID.                                |
+| `cardinality` | `string` | No       | Cardinality (e.g. "1:1", "1:N", "M:N").                    |
+
+### `BusinessRule`
+
+| Property      | Type     | Required | Description                                   |
+| ------------- | -------- | -------- | --------------------------------------------- |
+| `id`          | `string` | Yes      | Unique identifier.                            |
+| `name`        | `string` | Yes      | Rule name.                                    |
+| `description` | `string` | No       | Description of the rule.                      |
+| `condition`   | `string` | Yes      | The condition that triggers this rule.        |
+| `action`      | `string` | Yes      | The action to take when the condition is met. |
+| `priority`    | `string` | No       | Priority (e.g. "high", "medium", "low").      |
+
+### `BusinessProcess`
+
+| Property             | Type                 | Required | Description                   |
+| -------------------- | -------------------- | -------- | ----------------------------- |
+| `id`                 | `string`             | Yes      | Unique identifier.            |
+| `name`               | `string`             | Yes      | Process name.                 |
+| `description`        | `string`             | No       | Description.                  |
+| `stages`             | `ProcessStage[]`     | No       | The stages of this process.   |
+| `exception_handling` | `ExceptionHandler[]` | No       | Exception handling scenarios. |
+
+### `ProcessStage`
+
+| Property          | Type       | Required | Description                                    |
+| ----------------- | ---------- | -------- | ---------------------------------------------- |
+| `stage`           | `string`   | Yes      | Stage identifier (e.g. "creation", "payment"). |
+| `name`            | `string`   | No       | Human-readable name for this stage.            |
+| `entry_condition` | `string`   | No       | Condition that triggers entry into this stage. |
+| `actions`         | `string[]` | No       | Actions performed in this stage.               |
+| `exit_condition`  | `string`   | No       | Condition that must be met to exit this stage. |
+
+### `ExceptionHandler`
+
+| Property   | Type     | Required | Description                               |
+| ---------- | -------- | -------- | ----------------------------------------- |
+| `scenario` | `string` | Yes      | The scenario that triggers the exception. |
+| `action`   | `string` | Yes      | The action to take.                       |
+
+## Architecture
+
+### `Architecture`
+
+The Architecture describes the high-level structure of the software —
+layers, modules, components, and communication patterns.
+
+| Property                 | Type                     | Required | Description                                                                         |
+| ------------------------ | ------------------------ | -------- | ----------------------------------------------------------------------------------- |
+| `style`                  | `string`                 | No       | Architectural style (e.g. "layered", "microservices", "event-driven", "hexagonal"). |
+| `rationale`              | `string`                 | No       | Why this style was chosen.                                                          |
+| `layers`                 | `ArchitectureLayer[]`    | No       | Structural layers.                                                                  |
+| `modules`                | `ArchitectureModule[]`   | No       | Modules — units of related functionality.                                           |
+| `communication`          | `CommunicationPattern[]` | No       | Communication patterns between parts of the system.                                 |
+| `cross_cutting_concerns` | `CrossCuttingConcern[]`  | No       | Cross-cutting concerns (logging, error handling, auth).                             |
+
+### `ArchitectureLayer`
+
+| Property     | Type       | Required | Description                   |
+| ------------ | ---------- | -------- | ----------------------------- |
+| `name`       | `string`   | Yes      | -                             |
+| `components` | `string[]` | No       | Components within this layer. |
+
+### `ArchitectureModule`
+
+| Property         | Type                | Required | Description                           |
+| ---------------- | ------------------- | -------- | ------------------------------------- |
+| `name`           | `string`            | Yes      | Unique module identifier.             |
+| `responsibility` | `string`            | No       | What this module is responsible for.  |
+| `exports`        | `string[]`          | No       | What this module exports / provides.  |
+| `depends_on`     | `string[]`          | No       | Other modules this module depends on. |
+| `components`     | `ModuleComponent[]` | No       | The components within this module.    |
+
+### `ModuleComponent`
+
+| Property      | Type     | Required | Description                                                           |
+| ------------- | -------- | -------- | --------------------------------------------------------------------- |
+| `name`        | `string` | Yes      | -                                                                     |
+| `type`        | `string` | Yes      | Component type (e.g. "service", "controller", "repository", "model"). |
+| `description` | `string` | No       | -                                                                     |
+
+### `CommunicationPattern`
+
+| Property      | Type     | Required | Description                                               |
+| ------------- | -------- | -------- | --------------------------------------------------------- |
+| `type`        | `string` | Yes      | Sync or async pattern descriptor.                         |
+| `description` | `string` | No       | Description (e.g. "REST over HTTP", "RabbitMQ messages"). |
+
+### `CrossCuttingConcern`
+
+| Property      | Type     | Required | Description                                      |
+| ------------- | -------- | -------- | ------------------------------------------------ |
+| `name`        | `string` | Yes      | Concern name (e.g. "logging", "error_handling"). |
+| `description` | `string` | Yes      | How it is addressed.                             |
+
+## Data Models
+
+### `DataModel`
+
+A Data Model describes a data entity — its logical meaning,
+physical representation, attributes, relationships, and validation rules.
+
+| Property           | Type                 | Required | Description                                                   |
+| ------------------ | -------------------- | -------- | ------------------------------------------------------------- |
+| `entity`           | `string`             | Yes      | Entity name (e.g. "User", "Order").                           |
+| `status`           | `string`             | No       | Lifecycle status: "active" (current), "deprecated", "legacy". |
+| `version`          | `string`             | No       | Version this entity was introduced in.                        |
+| `deprecated`       | `DeprecationInfo`    | No       | Deprecation metadata.                                         |
+| `description`      | `string`             | No       | What this entity represents in the domain.                    |
+| `logical_model`    | `string`             | No       | The logical model — business meaning in natural language.     |
+| `attributes`       | `DataAttribute[]`    | No       | The attributes of this entity.                                |
+| `relationships`    | `DataRelationship[]` | No       | Relationships to other entities.                              |
+| `validation_rules` | `string[]`           | No       | Validation rules that apply to this entity.                   |
+| `physical_design`  | `PhysicalDesign`     | No       | Physical design hints (indexes, primary key).                 |
+
+### `DataAttribute`
+
+| Property        | Type                   | Required | Description                                                              |
+| --------------- | ---------------------- | -------- | ------------------------------------------------------------------------ |
+| `name`          | `string`               | Yes      | -                                                                        |
+| `type`          | `string`               | Yes      | Logical type (e.g. "UUID", "string", "boolean", "timestamp", "Decimal"). |
+| `format`        | `string`               | No       | A format hint (e.g. "email", "uri", "uuid").                             |
+| `description`   | `string`               | No       | -                                                                        |
+| `required`      | `boolean`              | No       | -                                                                        |
+| `default`       | `unknown`              | No       | Default value.                                                           |
+| `identity`      | `boolean`              | No       | Whether this is the identity / primary key.                              |
+| `generated`     | `boolean`              | No       | Whether this value is auto-generated.                                    |
+| `unique`        | `boolean`              | No       | Whether this value is unique.                                            |
+| `internal`      | `boolean`              | No       | Whether this is internal (not exposed to clients).                       |
+| `deprecated`    | `boolean`              | No       | Whether this field is deprecated (retained for compat).                  |
+| `compatibility` | `CompatibilityMapping` | No       | How this legacy field maps to the current schema.                        |
+| `constraints`   | `string[]`             | No       | Constraints (e.g. "max_length:200", "non_empty").                        |
+
+### `DataRelationship`
+
+| Property      | Type     | Required | Description                                                        |
+| ------------- | -------- | -------- | ------------------------------------------------------------------ |
+| `kind`        | `string` | Yes      | Relationship kind (e.g. "belongs_to", "has_many", "many_to_many"). |
+| `target`      | `string` | Yes      | Target entity name.                                                |
+| `foreign_key` | `string` | No       | Foreign key column name.                                           |
+| `join_table`  | `string` | No       | Join table for many-to-many.                                       |
+| `on_delete`   | `string` | No       | On-delete behavior (e.g. "cascade", "restrict").                   |
+
+### `PhysicalDesign`
+
+| Property      | Type                | Required | Description           |
+| ------------- | ------------------- | -------- | --------------------- |
+| `primary_key` | `string`            | No       | Primary key field(s). |
+| `indexes`     | `IndexDefinition[]` | No       | Index definitions.    |
+
+### `IndexDefinition`
+
+| Property | Type       | Required | Description |
+| -------- | ---------- | -------- | ----------- |
+| `fields` | `string[]` | Yes      | -           |
+| `type`   | `string`   | No       | -           |
+
+## Contracts
+
+### `Contracts`
+
+The Contracts section defines the interfaces, classes, enums,
+and API endpoints that form the software's public contract.
+This is the "contract-first" core: everything is described by its
+input/output signatures, behavior, pre/post conditions, and error cases.
+
+| Property                | Type                    | Required | Description                                                                   |
+| ----------------------- | ----------------------- | -------- | ----------------------------------------------------------------------------- |
+| `interfaces`            | `InterfaceContract[]`   | No       | Abstract interfaces.                                                          |
+| `classes`               | `ClassContract[]`       | No       | Concrete classes.                                                             |
+| `enums`                 | `EnumContract[]`        | No       | Enumerations.                                                                 |
+| `apis`                  | `ApiContract[]`         | No       | API endpoints (REST, gRPC, etc.).                                             |
+| `compatibility_modules` | `CompatibilityModule[]` | No       | Compatibility modules — isolated modules that exist only for backward compat. |
+| `data_migrations`       | `DataMigration[]`       | No       | Data migration specifications.                                                |
+
+### `CompatibilityModule`
+
+A compatibility module is an isolated set of interfaces, classes, or APIs
+that exist solely to maintain backward compatibility with older versions.
+Consumer agents can optionally exclude these when generating clean code.
+
+| Property           | Type       | Required | Description                                          |
+| ------------------ | ---------- | -------- | ---------------------------------------------------- |
+| `id`               | `string`   | Yes      | Module identifier.                                   |
+| `name`             | `string`   | Yes      | Human-readable name.                                 |
+| `description`      | `string`   | No       | Description.                                         |
+| `targets_versions` | `string[]` | No       | The versions this module provides compatibility for. |
+| `interfaces`       | `string[]` | No       | Interfaces in this compat module.                    |
+| `functions`        | `string[]` | No       | Functions in this compat module.                     |
+
+### `InterfaceContract`
+
+| Property      | Type               | Required | Description                                                   |
+| ------------- | ------------------ | -------- | ------------------------------------------------------------- |
+| `name`        | `string`           | Yes      | -                                                             |
+| `is_abstract` | `boolean`          | No       | Indicates this is abstract and must be implemented.           |
+| `status`      | `string`           | No       | Lifecycle status: "active" (current), "deprecated", "legacy". |
+| `version`     | `string`           | No       | Version this interface was introduced in.                     |
+| `deprecated`  | `DeprecationInfo`  | No       | Deprecation metadata.                                         |
+| `description` | `string`           | No       | Description.                                                  |
+| `methods`     | `ContractMethod[]` | No       | Methods defined on this interface.                            |
+| `invariants`  | `string[]`         | No       | Invariants that all implementations must maintain.            |
+
+### `ClassContract`
+
+| Property       | Type               | Required | Description                                                   |
+| -------------- | ------------------ | -------- | ------------------------------------------------------------- |
+| `name`         | `string`           | Yes      | -                                                             |
+| `status`       | `string`           | No       | Lifecycle status: "active" (current), "deprecated", "legacy". |
+| `version`      | `string`           | No       | Version this class was introduced in.                         |
+| `deprecated`   | `DeprecationInfo`  | No       | Deprecation metadata.                                         |
+| `description`  | `string`           | No       | Description.                                                  |
+| `implements`   | `string[]`         | No       | Interfaces this class implements.                             |
+| `dependencies` | `string[]`         | No       | Other contracts this class depends on.                        |
+| `methods`      | `ContractMethod[]` | No       | Methods defined on this class.                                |
+
+### `ContractMethod`
+
+| Property         | Type              | Required | Description                                                            |
+| ---------------- | ----------------- | -------- | ---------------------------------------------------------------------- |
+| `signature`      | `string`          | Yes      | Method signature (e.g. "create_task(input: CreateTaskInput) -> Task"). |
+| `status`         | `string`          | No       | Lifecycle status: "active" (current), "deprecated", "legacy".          |
+| `deprecated`     | `DeprecationInfo` | No       | Deprecation metadata.                                                  |
+| `behavior`       | `string`          | No       | Behavioral description in natural language.                            |
+| `preconditions`  | `string[]`        | No       | Conditions that must be true before calling.                           |
+| `postconditions` | `string[]`        | No       | Conditions guaranteed true after execution.                            |
+| `errors`         | `string[]`        | No       | Error cases.                                                           |
+
+### `EnumContract`
+
+| Property      | Type              | Required | Description           |
+| ------------- | ----------------- | -------- | --------------------- |
+| `name`        | `string`          | Yes      | -                     |
+| `description` | `string`          | No       | -                     |
+| `deprecated`  | `DeprecationInfo` | No       | Deprecation metadata. |
+| `values`      | `string[]`        | Yes      | Enumeration values.   |
+
+### `ApiContract`
+
+| Property        | Type                          | Required | Description                                                        |
+| --------------- | ----------------------------- | -------- | ------------------------------------------------------------------ |
+| `method`        | `string`                      | Yes      | HTTP method or protocol operation (e.g. "POST", "GET").            |
+| `path`          | `string`                      | Yes      | API path (e.g. "/api/v1/tasks").                                   |
+| `auth`          | `string`                      | No       | Auth requirement (e.g. "bearer_jwt", "none").                      |
+| `status`        | `string`                      | No       | Lifecycle status: "active" (current), "deprecated", "legacy".      |
+| `deprecated`    | `DeprecationInfo`             | No       | Deprecation metadata.                                              |
+| `compatibility` | `CompatibilityMapping`        | No       | Compatibility layer — how this legacy API maps to the current one. |
+| `description`   | `string`                      | No       | Description.                                                       |
+| `request`       | `ApiRequest`                  | No       | Request specification.                                             |
+| `response`      | `Record<string, ApiResponse>` | No       | Response specification keyed by status code.                       |
+| `behavior`      | `string`                      | No       | Behavioral description.                                            |
+| `side_effects`  | `string[]`                    | No       | Side effects of this API call.                                     |
+| `rate_limit`    | `string`                      | No       | Rate limiting (e.g. "100 req/min per user").                       |
+
+### `ApiRequest`
+
+| Property           | Type                      | Required | Description          |
+| ------------------ | ------------------------- | -------- | -------------------- |
+| `body`             | `Record<string, unknown>` | No       | Request body schema. |
+| `headers`          | `Record<string, string>`  | No       | Request headers.     |
+| `validation_rules` | `string[]`                | No       | Validation rules.    |
+
+### `ApiResponse`
+
+| Property      | Type      | Required | Description                   |
+| ------------- | --------- | -------- | ----------------------------- |
+| `body`        | `unknown` | No       | Response body type or schema. |
+| `description` | `string`  | No       | Response description.         |
+
+## Behavior
+
+### `Behavior`
+
+The Behavior section describes the dynamic aspects of the software:
+function signatures with pseudocode logic, complex multi-participant
+flows, and state machines.
+
+| Property         | Type             | Required | Description                                     |
+| ---------------- | ---------------- | -------- | ----------------------------------------------- |
+| `functions`      | `FunctionSpec[]` | No       | Function specifications.                        |
+| `flows`          | `FlowSpec[]`     | No       | Complex multi-step flows (orchestration level). |
+| `state_machines` | `StateMachine[]` | No       | State machines for key entities.                |
+
+### `FunctionSpec`
+
+| Property        | Type              | Required | Description                                                |
+| --------------- | ----------------- | -------- | ---------------------------------------------------------- |
+| `name`          | `string`          | Yes      | Function name.                                             |
+| `description`   | `string`          | No       | What this function does.                                   |
+| `inputs`        | `FunctionParam[]` | No       | Input parameters.                                          |
+| `outputs`       | `FunctionParam[]` | No       | Output values.                                             |
+| `logic`         | `string`          | No       | Pseudocode logic (using S.DEF standard pseudocode syntax). |
+| `complexity`    | `string`          | No       | Computational complexity (e.g. "O(n)").                    |
+| `pure_function` | `boolean`         | No       | Whether this function is pure (no side effects).           |
+| `edge_cases`    | `EdgeCase[]`      | No       | Edge cases and their expected behavior.                    |
+
+### `FunctionParam`
+
+| Property      | Type     | Required | Description   |
+| ------------- | -------- | -------- | ------------- |
+| `name`        | `string` | Yes      | -             |
+| `type`        | `string` | Yes      | Logical type. |
+| `description` | `string` | No       | -             |
+
+### `EdgeCase`
+
+| Property            | Type     | Required | Description              |
+| ------------------- | -------- | -------- | ------------------------ |
+| `condition`         | `string` | Yes      | The edge case condition. |
+| `expected_behavior` | `string` | Yes      | Expected behavior.       |
+
+### `FlowSpec`
+
+| Property       | Type                   | Required | Description                                  |
+| -------------- | ---------------------- | -------- | -------------------------------------------- |
+| `id`           | `string`               | Yes      | Flow identifier.                             |
+| `name`         | `string`               | Yes      | Flow name.                                   |
+| `description`  | `string`               | No       | -                                            |
+| `level`        | `string`               | No       | Orchestration or primitive level.            |
+| `participants` | `FlowParticipant[]`    | No       | Participants in this flow.                   |
+| `steps`        | `FlowStep[]`           | No       | Step-by-step flow definition.                |
+| `compensation` | `CompensationStrategy` | No       | Compensation strategy if rollback is needed. |
+
+### `FlowParticipant`
+
+| Property | Type     | Required | Description                                          |
+| -------- | -------- | -------- | ---------------------------------------------------- |
+| `role`   | `string` | Yes      | Role name (e.g. "OrderService").                     |
+| `type`   | `string` | Yes      | Participant type (e.g. "service", "infrastructure"). |
+
+### `FlowStep`
+
+| Property         | Type                 | Required | Description                           |
+| ---------------- | -------------------- | -------- | ------------------------------------- |
+| `step`           | `number`             | Yes      | Step number (ordering).               |
+| `actor`          | `string`             | Yes      | The participant performing this step. |
+| `action`         | `string`             | Yes      | Action description.                   |
+| `input`          | `string`             | No       | Input data.                           |
+| `output`         | `string`             | No       | Output data.                          |
+| `error_handling` | `FlowErrorHandler[]` | No       | Error handling for this step.         |
+
+### `FlowErrorHandler`
+
+| Property    | Type     | Required | Description      |
+| ----------- | -------- | -------- | ---------------- |
+| `condition` | `string` | Yes      | Error condition. |
+| `action`    | `string` | Yes      | Action on error. |
+
+### `CompensationStrategy`
+
+| Property      | Type     | Required | Description                        |
+| ------------- | -------- | -------- | ---------------------------------- |
+| `description` | `string` | Yes      | Description of compensation logic. |
+| `action`      | `string` | Yes      | Action to take for compensation.   |
+
+### `StateMachine`
+
+| Property      | Type                | Required | Description                               |
+| ------------- | ------------------- | -------- | ----------------------------------------- |
+| `entity`      | `string`            | Yes      | The entity this state machine applies to. |
+| `states`      | `string[]`          | Yes      | Possible states.                          |
+| `transitions` | `StateTransition[]` | No       | State transitions.                        |
+
+### `StateTransition`
+
+| Property           | Type       | Required | Description                         |
+| ------------------ | ---------- | -------- | ----------------------------------- |
+| `from`             | `string`   | Yes      | Source state.                       |
+| `to`               | `string`   | Yes      | Target state.                       |
+| `trigger`          | `string`   | No       | Event that triggers the transition. |
+| `guard_conditions` | `string[]` | No       | Guard conditions that must be true. |
+
+## User Interface
+
+### `UserInterface`
+
+The UI section describes the user-facing aspects of the software.
+\*Three layers of UI description (choose one or combine):\*\*
+
+1. **Design System** (`design_system`) — design tokens, colors, typography,
+   spacing, shadows, themes. Higher-level than raw CSS; reusable across screens.
+   Adapted from the Pen format's variable system.
+2. **Pen-compatible Visual Document** (`document`) — a JSON object tree
+   compatible with the [Pen format](https://docs.pencil.dev/for-developers/the-pen-format).
+   Uses flexbox layout, fills/strokes/effects, components+instances+slots.
+   Best for pixel-level visual fidelity. Extended with S.DEF semantic fields
+   (`sdefBindings`, `sdefBehaviors`, `sdefStates`, etc.).
+3. **Abstract Screens** (`screens`) — simplified semantic screen descriptions
+   without pixel values. Best for intent-level descriptions and quick prototyping.
+
+| Property             | Type                     | Required | Description                                                                         |
+| -------------------- | ------------------------ | -------- | ----------------------------------------------------------------------------------- |
+| `design_system`      | `UIDesignSystem`         | No       | Design system — tokens, themes, and style primitives (adapted from the Pen format). |
+| `document`           | `UIDocument`             | No       | Pen-compatible visual document with S.DEF extensions.                               |
+| `screens`            | `UIScreen[]`             | No       | Abstract screen definitions — simpler, intent-focused.                              |
+| `navigation`         | `UINavigation`           | No       | Navigation definition.                                                              |
+| `responsive_design`  | `ResponsiveBreakpoint[]` | No       | Responsive design breakpoints.                                                      |
+| `component_taxonomy` | `UIComponentType[]`      | No       | Component taxonomy (reusable component library).                                    |
+
+## Layer 1: Design System (Tokens & Themes)
+
+### `UIDesignSystem`
+
+A Design System defines the atomic visual primitives — colors, typography,
+spacing, shadows, motion, border radius — as named tokens that everything
+else references.
+Inspired by the Pen format's variable system.
+
+| Property        | Type                     | Required | Description                                                                        |
+| --------------- | ------------------------ | -------- | ---------------------------------------------------------------------------------- |
+| `colors`        | `Record<string, string>` | No       | Color tokens. Values can be hex colors, or references to other tokens via `$name`. |
+| `typography`    | `UIDesignTypography`     | No       | Typography tokens.                                                                 |
+| `spacing`       | `Record<string, string>` | No       | Spacing tokens (e.g. `"spacing.sm": "8px"`).                                       |
+| `border_radius` | `Record<string, string>` | No       | Border radius tokens.                                                              |
+| `shadows`       | `Record<string, string>` | No       | Shadow tokens.                                                                     |
+| `motion`        | `UIDesignMotion`         | No       | Motion / animation tokens.                                                         |
+| `themes`        | `UIDesignTheme[]`        | No       | Theme configurations (e.g. light/dark).                                            |
+
+### `UIDesignTypography`
+
+| Property        | Type                     | Required | Description         |
+| --------------- | ------------------------ | -------- | ------------------- |
+| `font_families` | `Record<string, string>` | No       | Font family tokens. |
+| `font_sizes`    | `Record<string, string>` | No       | Font size tokens.   |
+| `font_weights`  | `Record<string, string>` | No       | Font weight tokens. |
+| `line_heights`  | `Record<string, string>` | No       | Line height tokens. |
+
+### `UIDesignMotion`
+
+| Property    | Type                     | Required | Description                                        |
+| ----------- | ------------------------ | -------- | -------------------------------------------------- |
+| `durations` | `Record<string, string>` | No       | Duration tokens (e.g. `"duration.fast": "150ms"`). |
+| `easings`   | `Record<string, string>` | No       | Easing curve tokens.                               |
+
+### `UIDesignTheme`
+
+| Property    | Type                     | Required | Description                                                          |
+| ----------- | ------------------------ | -------- | -------------------------------------------------------------------- |
+| `name`      | `string`                 | Yes      | Theme name (e.g. "light", "dark").                                   |
+| `overrides` | `Record<string, string>` | No       | Token overrides for this theme. Key = token name, value = new value. |
+
+## Layer 2: Pen-compatible Visual Document with S.DEF Extensions
+
+### `UIDocument`
+
+A Pen-compatible UI document — a JSON object tree similar to SVG/HTML
+but designed for UI design tools and AI consumption.
+Compatible with the [Pen format](https://docs.pencil.dev/for-developers/the-pen-format).
+All visual elements extend `UIBaseElement`.
+S.DEF adds semantic extension fields prefixed with `sdef` to standard Pen
+elements — these are ignored by standard Pen parsers but provide essential
+context for AI agents (data binding, behaviors, states, accessibility, tests).
+
+| Property    | Type                         | Required | Description                              |
+| ----------- | ---------------------------- | -------- | ---------------------------------------- |
+| `version`   | `string`                     | No       | Pen format version (e.g. "2.11").        |
+| `variables` | `Record<string, UIVariable>` | No       | Document variables (Pen-compatible).     |
+| `themes`    | `Record<string, string[]>`   | No       | Theme axis definitions (Pen-compatible). |
+| `children`  | `UINode[]`                   | Yes      | Top-level visual elements.               |
+
+### `UIVariable`
+
+| Property | Type                                           | Required | Description |
+| -------- | ---------------------------------------------- | -------- | ----------- |
+| `type`   | `"boolean" \| "color" \| "number" \| "string"` | Yes      | -           |
+| `value`  | `unknown`                                      | Yes      | -           |
+
+### `UIBaseElement`
+
+Base entity shared by all Pen visual elements.
+Every element has a unique `id`, a `type`, and optional position/size.
+
+| Property            | Type                     | Required | Description                                                                                 |
+| ------------------- | ------------------------ | -------- | ------------------------------------------------------------------------------------------- |
+| `id`                | `string`                 | Yes      | Unique string identifier within the document.                                               |
+| `name`              | `string`                 | No       | Human-readable name.                                                                        |
+| `type`              | `string`                 | Yes      | Element type: "frame", "rectangle", "ellipse", "path", "text", "ref", "icon_font", "group". |
+| `x`                 | `number`                 | No       | X position relative to parent top-left.                                                     |
+| `y`                 | `number`                 | No       | Y position relative to parent top-left.                                                     |
+| `width`             | `unknown`                | No       | Width (number, or sizing behavior like "fill_container", "fit_content").                    |
+| `height`            | `unknown`                | No       | Height.                                                                                     |
+| `reusable`          | `boolean`                | No       | When true, this element becomes a reusable component.                                       |
+| `theme`             | `Record<string, string>` | No       | Theme configuration applied to this element and its children.                               |
+| `opacity`           | `number`                 | No       | Opacity (0-1).                                                                              |
+| `rotation`          | `number`                 | No       | Rotation in degrees CCW.                                                                    |
+| `enabled`           | `boolean`                | No       | Whether this element is enabled/visible.                                                    |
+| `fill`              | `unknown`                | No       | Fill(s) — solid color, gradient, or image.                                                  |
+| `stroke`            | `UIStroke`               | No       | Stroke (border).                                                                            |
+| `effect`            | `unknown`                | No       | Effect(s) — blur, shadow, etc.                                                              |
+| `children`          | `UINode[]`               | No       | Child elements.                                                                             |
+| `sdefBindings`      | `UIDataBinding[]`        | No       | Data binding — links this element to a data model entity field.                             |
+| `sdefBehaviors`     | `UIBehavior[]`           | No       | Interaction behaviors — user actions that trigger business logic.                           |
+| `sdefStates`        | `UIVisualState[]`        | No       | Visual states — how this element changes under different conditions.                        |
+| `sdefAccessibility` | `UIAccessibility`        | No       | Accessibility requirements.                                                                 |
+| `sdefTestHook`      | `string`                 | No       | Test hook identifier for automated UI testing.                                              |
+| `sdefNavigation`    | `UINavTarget`            | No       | Navigation target when this element is activated.                                           |
+
+### `UIStroke`
+
+| Property    | Type      | Required | Description                                       |
+| ----------- | --------- | -------- | ------------------------------------------------- |
+| `align`     | `string`  | No       | Stroke alignment ("inside", "center", "outside"). |
+| `thickness` | `number`  | No       | Stroke thickness.                                 |
+| `fill`      | `unknown` | No       | Stroke fill (color).                              |
+
+### `UIDataBinding`
+
+Data binding — links a UI element property to a data entity field.
+Enables one-way (display) or two-way (edit) data flow.
+
+| Property    | Type                     | Required | Description                                                         |
+| ----------- | ------------------------ | -------- | ------------------------------------------------------------------- |
+| `entity`    | `string`                 | Yes      | The entity name (matches a DataModel.entity).                       |
+| `field`     | `string`                 | Yes      | The entity field name.                                              |
+| `direction` | `"one_way" \| "two_way"` | No       | Binding direction: "one_way" (read only) or "two_way" (read/write). |
+
+### `UIBehavior`
+
+Interaction behavior — a user action that triggers a business operation.
+
+| Property     | Type                      | Required | Description                                                                   |
+| ------------ | ------------------------- | -------- | ----------------------------------------------------------------------------- |
+| `on`         | `string`                  | Yes      | Event that triggers this behavior (e.g. "click", "submit", "focus", "enter"). |
+| `action`     | `string`                  | Yes      | Action to perform. Can be a contract reference or a built-in action.          |
+| `parameters` | `Record<string, unknown>` | No       | Parameters passed to the action.                                              |
+| `on_success` | `UIBehaviorOutcome`       | No       | What happens on success.                                                      |
+| `on_error`   | `UIBehaviorOutcome`       | No       | What happens on error.                                                        |
+
+### `UIBehaviorOutcome`
+
+| Property  | Type     | Required | Description                                                                |
+| --------- | -------- | -------- | -------------------------------------------------------------------------- |
+| `action`  | `string` | No       | Outcome action type (e.g. "navigate", "refresh", "show_message", "close"). |
+| `target`  | `string` | No       | Target for navigation actions.                                             |
+| `message` | `string` | No       | Message for show_message actions.                                          |
+
+### `UIVisualState`
+
+Visual state — how the element changes under a specific condition.
+
+| Property     | Type                      | Required | Description                                                          |
+| ------------ | ------------------------- | -------- | -------------------------------------------------------------------- |
+| `name`       | `string`                  | Yes      | State name (e.g. "loading", "error", "disabled", "active", "hover"). |
+| `condition`  | `UIVisualStateCondition`  | No       | Condition that triggers this state.                                  |
+| `properties` | `Record<string, unknown>` | No       | Property overrides when this state is active.                        |
+
+### `UIVisualStateCondition`
+
+| Property          | Type         | Required             | Description                    |
+| ----------------- | ------------ | -------------------- | ------------------------------ |
+| `binding`         | `string`     | No                   | The binding field to evaluate. |
+| `operator`        | `\| "equals" |
+| \| "not_equals"   |
+| \| "greater_than" |
+| \| "less_than"    |
+| \| "contains"`    | No           | Comparison operator. |
+| `value`           | `unknown`    | No                   | Comparison value.              |
+
+### `UIAccessibility`
+
+Accessibility metadata for the element.
+
+| Property             | Type     | Required | Description                     |
+| -------------------- | -------- | -------- | ------------------------------- |
+| `aria_label`         | `string` | No       | ARIA label for screen readers.  |
+| `aria_role`          | `string` | No       | ARIA role.                      |
+| `keyboard_shortcut`  | `string` | No       | Keyboard shortcut.              |
+| `screen_reader_text` | `string` | No       | Screen reader description text. |
+
+### `UINavTarget`
+
+Navigation target when this element is activated.
+
+| Property        | Type                     | Required | Description                |
+| --------------- | ------------------------ | -------- | -------------------------- |
+| `target_screen` | `string`                 | No       | Target screen ID or route. |
+| `parameters`    | `Record<string, string>` | No       | Parameters to pass.        |
+
+### `UIFrame`
+
+Container element with flexbox layout.
+Analogous to Pen's `frame` type.
+
+| Property         | Type                                                             | Required | Description                                                                      |
+| ---------------- | ---------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------- |
+| `type`           | `"frame"`                                                        | Yes      | -                                                                                |
+| `layout`         | `"none" \| "vertical" \| "horizontal"`                           | No       | Flex layout direction ("vertical", "horizontal", "none").                        |
+| `gap`            | `number`                                                         | No       | Gap between children.                                                            |
+| `padding`        | `number \| [number, number] \| [number, number, number, number]` | No       | Padding.                                                                         |
+| `justifyContent` | `string`                                                         | No       | Main-axis alignment ("start", "center", "end", "space_between", "space_around"). |
+| `alignItems`     | `string`                                                         | No       | Cross-axis alignment ("start", "center", "end").                                 |
+| `cornerRadius`   | `number`                                                         | No       | Corner radius for rounded corners.                                               |
+| `clip`           | `boolean`                                                        | No       | Clip overflow.                                                                   |
+| `slot`           | `boolean \| string[]`                                            | No       | Mark as a slot for component instances. Array = recommended component IDs.       |
+
+### `UIText`
+
+Text element with typography controls.
+
+| Property         | Type      | Required | Description                                    |
+| ---------------- | --------- | -------- | ---------------------------------------------- |
+| `type`           | `"text"`  | Yes      | -                                              |
+| `content`        | `unknown` | No       | The text content.                              |
+| `placeholder`    | `string`  | No       | Placeholder text when content is empty.        |
+| `fontFamily`     | `string`  | No       | Font family.                                   |
+| `fontSize`       | `number`  | No       | Font size.                                     |
+| `fontWeight`     | `unknown` | No       | Font weight.                                   |
+| `textAlign`      | `string`  | No       | Text alignment ("left", "center", "right").    |
+| `lineHeight`     | `number`  | No       | Line height (multiplier of fontSize).          |
+| `textDecoration` | `string`  | No       | Text decoration: "underline", "strikethrough". |
+
+### `UIRectangle`
+
+Rectangle shape element.
+
+| Property       | Type          | Required | Description    |
+| -------------- | ------------- | -------- | -------------- |
+| `type`         | `"rectangle"` | Yes      | -              |
+| `cornerRadius` | `number`      | No       | Corner radius. |
+
+### `UIEllipse`
+
+Ellipse shape element.
+
+| Property      | Type        | Required | Description                                  |
+| ------------- | ----------- | -------- | -------------------------------------------- |
+| `type`        | `"ellipse"` | Yes      | -                                            |
+| `innerRadius` | `number`    | No       | Inner radius ratio (0=solid, 1=hollow ring). |
+
+### `UIPath`
+
+Path (SVG path) element.
+
+| Property   | Type                     | Required | Description                       |
+| ---------- | ------------------------ | -------- | --------------------------------- |
+| `type`     | `"path"`                 | Yes      | -                                 |
+| `geometry` | `string`                 | No       | SVG path geometry string.         |
+| `fillRule` | `"nonzero" \| "evenodd"` | No       | Fill rule ("nonzero", "evenodd"). |
+
+### `UIRef`
+
+Instance of a reusable component — references another element by `id`.
+Analogous to Pen's `ref` type.
+
+| Property      | Type                                      | Required | Description                                 |
+| ------------- | ----------------------------------------- | -------- | ------------------------------------------- |
+| `type`        | `"ref"`                                   | Yes      | -                                           |
+| `ref`         | `string`                                  | Yes      | ID of the referenced (reusable) element.    |
+| `descendants` | `Record<string, Record<string, unknown>>` | No       | Property overrides for descendant elements. |
+
+### `UIIconFont`
+
+Icon from an icon font library (e.g. Lucide, Material Symbols).
+
+| Property         | Type          | Required | Description                                       |
+| ---------------- | ------------- | -------- | ------------------------------------------------- |
+| `type`           | `"icon_font"` | Yes      | -                                                 |
+| `icon`           | `string`      | No       | Icon name within the library.                     |
+| `iconFontFamily` | `string`      | No       | Icon library (e.g. "lucide", "material_symbols"). |
+| `weight`         | `number`      | No       | Icon weight (for variable-weight fonts).          |
+
+## Layer 3: Abstract Screens (simplified, semantic descriptions)
+
+### `UIScreen`
+
+For simpler use cases, screens describe UI with semantic intent, not pixels.
+
+| Property       | Type              | Required | Description                          |
+| -------------- | ----------------- | -------- | ------------------------------------ |
+| `id`           | `string`          | Yes      | Screen identifier.                   |
+| `name`         | `string`          | Yes      | Screen name.                         |
+| `route`        | `string`          | No       | Route (e.g. "/tasks", "/tasks/:id"). |
+| `purpose`      | `string`          | No       | Purpose of this screen.              |
+| `layout`       | `string`          | No       | Layout description.                  |
+| `components`   | `UIComponent[]`   | No       | Components on this screen.           |
+| `state`        | `UIState`         | No       | Screen-level state.                  |
+| `interactions` | `UIInteraction[]` | No       | User interactions.                   |
+
+### `UIComponent`
+
+| Property      | Type            | Required | Description                                              |
+| ------------- | --------------- | -------- | -------------------------------------------------------- |
+| `name`        | `string`        | Yes      | -                                                        |
+| `type`        | `string`        | Yes      | Component type (e.g. "text", "button", "input", "list"). |
+| `content`     | `string`        | No       | Content or placeholder text.                             |
+| `placeholder` | `string`        | No       | Placeholder text for inputs.                             |
+| `props`       | `string[]`      | No       | Props / data this component receives.                    |
+| `style`       | `string`        | No       | Style guidance (not CSS).                                |
+| `states`      | `string[]`      | No       | Visual states (e.g. "normal", "completed", "overdue").   |
+| `children`    | `UIComponent[]` | No       | Sub-components (for compound components).                |
+| `behaviors`   | `string[]`      | No       | Behaviors / event handlers.                              |
+| `events`      | `string[]`      | No       | Events this component emits.                             |
+| `bind_to`     | `string`        | No       | Data binding (e.g. "bind_to": "completed").              |
+
+### `UIState`
+
+| Property | Type       | Required | Description             |
+| -------- | ---------- | -------- | ----------------------- |
+| `global` | `string[]` | No       | Global state variables. |
+| `local`  | `string[]` | No       | Local state variables.  |
+
+### `UIInteraction`
+
+| Property     | Type     | Required | Description                     |
+| ------------ | -------- | -------- | ------------------------------- |
+| `trigger`    | `string` | Yes      | What triggers this interaction. |
+| `action`     | `string` | Yes      | Action performed.               |
+| `on_success` | `string` | No       | Description on success.         |
+| `on_error`   | `string` | No       | Description on error.           |
+
+## Navigation
+
+### `UINavigation`
+
+Application navigation structure — routes, screens, and transitions.
+
+| Property      | Type                | Required | Description                                               |
+| ------------- | ------------------- | -------- | --------------------------------------------------------- |
+| `type`        | `string`            | No       | Type of navigation model ("hierarchical", "flat", "tab"). |
+| `nodes`       | `UINavNode[]`       | No       | Navigation nodes forming the navigation tree.             |
+| `transitions` | `UINavTransition[]` | No       | Global navigation transitions.                            |
+
+### `UINavNode`
+
+| Property   | Type          | Required | Description                             |
+| ---------- | ------------- | -------- | --------------------------------------- |
+| `id`       | `string`      | Yes      | Node identifier.                        |
+| `label`    | `string`      | No       | Display label.                          |
+| `icon`     | `string`      | No       | Icon identifier.                        |
+| `route`    | `string`      | No       | Route path.                             |
+| `badge`    | `string`      | No       | Badge binding (e.g. "cart_item_count"). |
+| `children` | `UINavNode[]` | No       | Child navigation nodes.                 |
+
+### `UINavTransition`
+
+| Property    | Type     | Required | Description              |
+| ----------- | -------- | -------- | ------------------------ |
+| `from`      | `string` | No       | Source state.            |
+| `to`        | `string` | No       | Target state.            |
+| `animation` | `string` | No       | Transition animation.    |
+| `duration`  | `string` | No       | Duration (e.g. "250ms"). |
+
+## Responsive Design
+
+### `ResponsiveBreakpoint`
+
+| Property      | Type     | Required | Description                                 |
+| ------------- | -------- | -------- | ------------------------------------------- |
+| `min_width`   | `string` | No       | Min width for this breakpoint.              |
+| `max_width`   | `string` | No       | Max width for this breakpoint.              |
+| `label`       | `string` | No       | Label (e.g. "mobile", "tablet", "desktop"). |
+| `description` | `string` | Yes      | Description of layout adjustments.          |
+
+### `UIComponentType`
+
+| Property            | Type       | Required | Description                                                    |
+| ------------------- | ---------- | -------- | -------------------------------------------------------------- |
+| `component_id`      | `string`   | Yes      | Component identifier.                                          |
+| `type`              | `string`   | No       | Component type (e.g. "form", "list", "dashboard", "workflow"). |
+| `data_requirements` | `string`   | No       | Required data schema.                                          |
+| `interaction_rules` | `string[]` | No       | Interaction rules for this component type.                     |
+
+## Test Contract
+
+### `TestContract`
+
+The Test Contract is the verification mechanism: it defines the tests
+that a reconstructed software implementation must pass to be considered
+functionally equivalent to the original.
+Tests are described as behavior specifications — given/when/then —
+without implementation code.
+
+| Property              | Type                | Required | Description                                      |
+| --------------------- | ------------------- | -------- | ------------------------------------------------ |
+| `unit_tests`          | `UnitTestGroup[]`   | No       | Unit tests organized by module/function.         |
+| `integration_tests`   | `IntegrationTest[]` | No       | Integration tests that span multiple components. |
+| `acceptance_criteria` | `string[]`          | No       | Acceptance criteria for the entire system.       |
+
+### `UnitTestGroup`
+
+| Property       | Type             | Required | Description                              |
+| -------------- | ---------------- | -------- | ---------------------------------------- |
+| `module_id`    | `string`         | No       | The module this group tests.             |
+| `interface_id` | `string`         | No       | The interface/function this group tests. |
+| `test_cases`   | `UnitTestCase[]` | No       | Individual test cases.                   |
+
+### `UnitTestCase`
+
+| Property                | Type       | Required | Description              |
+| ----------------------- | ---------- | -------- | ------------------------ |
+| `id`                    | `string`   | Yes      | Unique test ID.          |
+| `description`           | `string`   | Yes      | What this test verifies. |
+| `given`                 | `unknown`  | No       | Preconditions / setup.   |
+| `when`                  | `string`   | No       | The action being tested. |
+| `then`                  | `unknown`  | No       | Expected results.        |
+| `expected_exception`    | `string`   | No       | Expected exception.      |
+| `expected_side_effects` | `string[]` | No       | Expected side effects.   |
+
+### `IntegrationTest`
+
+| Property          | Type       | Required | Description              |
+| ----------------- | ---------- | -------- | ------------------------ |
+| `id`              | `string`   | Yes      | Unique test ID.          |
+| `description`     | `string`   | Yes      | What this test verifies. |
+| `steps`           | `string[]` | No       | Step-by-step scenario.   |
+| `expected_result` | `string`   | No       | Expected result.         |
+| `assertions`      | `string[]` | No       | Assertions.              |
+
+## Reconstruction Rules
+
+### `ReconstructionRules`
+
+Reconstruction Rules guide the builder agent in how to reconstruct
+the software from the S.DEF description.
+This includes the target fidelity level, technology stack constraints,
+and priority-ordered directives.
+
+| Property                   | Type                                       | Required                                                                                                                                                                                                      | Description                                                                                                                                                                                                                                                                                                      |
+| -------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reconstruction_fidelity`  | `\| "prototype"                            |
+| \| "production_equivalent" |
+| \| "bit_identical"`        | No                                         | Target reconstruction fidelity: - "prototype": Functional demo, fidelity not guaranteed - "production_equivalent": Functionally equivalent, similar quality - "bit_identical": Byte-for-byte identical output |
+| `compatibility_mode`       | `"full" \| "mixed" \| "clean" \| "custom"` | No                                                                                                                                                                                                            | Compatibility mode for code generation: - "full": Keep all compatibility layers (behavior identical to original) - "mixed": Keep compat layers but mark as deprecated - "clean": Strip all deprecated/compat elements, generate only current versions - "custom": Use `target_versions` for fine-grained control |
+| `target_versions`          | `string[]`                                 | No                                                                                                                                                                                                            | When compatibility_mode is "custom", which versions to include compat for.                                                                                                                                                                                                                                       |
+| `tech_constraints`         | `TechConstraints`                          | No                                                                                                                                                                                                            | Technology stack constraints.                                                                                                                                                                                                                                                                                    |
+| `directives`               | `ReconstructionDirective[]`                | No                                                                                                                                                                                                            | Directives that guide the reconstruction process.                                                                                                                                                                                                                                                                |
+
+### `TechConstraints`
+
+| Property               | Type                    | Required | Description                                                                   |
+| ---------------------- | ----------------------- | -------- | ----------------------------------------------------------------------------- |
+| `language_family`      | `string`                | No       | Target language family (e.g. "jvm", "javascript", "python", "dotnet").        |
+| `runtime`              | `string`                | No       | Target runtime (e.g. "browser", "node", "jvm").                               |
+| `persistence_model`    | `string`                | No       | Data persistence model (e.g. "relational", "document", "graph", "key_value"). |
+| `protocol`             | `string`                | No       | Network protocol (e.g. "http", "grpc", "websocket").                          |
+| `concurrency_model`    | `string`                | No       | Concurrency model (e.g. "threaded", "async", "actor").                        |
+| `allowed_licenses`     | `string[]`              | No       | Allowed open-source licenses.                                                 |
+| `preferred_frameworks` | `string[]`              | No       | Preferred frameworks (optional suggestions).                                  |
+| `env_variables`        | `EnvironmentVariable[]` | No       | Environment variables.                                                        |
+
+### `ReconstructionDirective`
+
+| Property    | Type                          | Required | Description                                                                                                              |
+| ----------- | ----------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `priority`  | `"must" \| "should" \| "may"` | Yes      | Priority level: must, should, or may.                                                                                    |
+| `directive` | `string`                      | Yes      | The directive content.                                                                                                   |
+| `rationale` | `string`                      | No       | Why this directive exists.                                                                                               |
+| `locked`    | `boolean`                     | No       | When true, this directive acts as a read-only lock — agents must not modify the targeted code without explicit approval. |
+
+### `EnvironmentVariable`
+
+| Property      | Type      | Required | Description                       |
+| ------------- | --------- | -------- | --------------------------------- |
+| `name`        | `string`  | Yes      | -                                 |
+| `description` | `string`  | Yes      | -                                 |
+| `secret`      | `boolean` | No       | Indicates this value is a secret. |
+
+## Deployment
+
+### `Deployment`
+
+| Property           | Type                 | Required | Description               |
+| ------------------ | -------------------- | -------- | ------------------------- |
+| `runtime`          | `RuntimeRequirement` | No       | Runtime requirements.     |
+| `build_output`     | `string`             | No       | Build output description. |
+| `deployment_steps` | `string[]`           | No       | Deployment steps.         |
+| `configuration`    | `ConfigurationVar[]` | No       | Configuration variables.  |
+| `scaling`          | `ScalingStrategy`    | No       | Scaling strategy.         |
+| `monitoring`       | `string`             | No       | Monitoring requirements.  |
+
+### `RuntimeRequirement`
+
+| Property           | Type                     | Required | Description                                                    |
+| ------------------ | ------------------------ | -------- | -------------------------------------------------------------- |
+| `environment`      | `string`                 | No       | Runtime environment (e.g. "modern web browser", "Node.js 22"). |
+| `minimum_versions` | `Record<string, string>` | No       | Minimum versions.                                              |
+
+### `ConfigurationVar`
+
+| Property        | Type     | Required | Description    |
+| --------------- | -------- | -------- | -------------- |
+| `name`          | `string` | Yes      | -              |
+| `description`   | `string` | No       | -              |
+| `default_value` | `string` | No       | Default value. |
+
+### `ScalingStrategy`
+
+| Property      | Type     | Required | Description                                          |
+| ------------- | -------- | -------- | ---------------------------------------------------- |
+| `description` | `string` | No       | Strategy description (e.g. "horizontal, stateless"). |
+
+## Dependencies & Resources (enhanced from original)
+
+### `Dependency`
+
+| Property  | Type                                          | Required | Description                                     |
+| --------- | --------------------------------------------- | -------- | ----------------------------------------------- |
+| `name`    | `string`                                      | Yes      | Name of the dependency.                         |
+| `version` | `string`                                      | No       | Version constraint.                             |
+| `type`    | `"runtime" \| "build" \| "dev" \| "optional"` | No       | Type of dependency (e.g., runtime, build, dev). |
+| `purpose` | `string`                                      | No       | Purpose of this dependency.                     |
+| `source`  | `string`                                      | No       | Where to obtain the dependency.                 |
+
+### `Resource`
+
+| Property      | Type     | Required | Description                                     |
+| ------------- | -------- | -------- | ----------------------------------------------- |
+| `name`        | `string` | Yes      | Resource name.                                  |
+| `type`        | `string` | Yes      | Resource type (e.g., database, file, endpoint). |
+| `uri`         | `string` | No       | URI identifying the resource.                   |
+| `description` | `string` | No       | Description.                                    |
+
+## Legacy / Existing Interface Types (preserved for compatibility)
+
+### `SoftwareInterface`
+
+| Property      | Type            | Required | Description                                             |
+| ------------- | --------------- | -------- | ------------------------------------------------------- |
+| `name`        | `string`        | Yes      | Unique name for this interface.                         |
+| `type`        | `string`        | Yes      | The type of interface (e.g., HTTP, gRPC, CLI, Library). |
+| `description` | `string`        | No       | Description of what this interface provides.            |
+| `spec`        | `InterfaceSpec` | No       | The specification for this interface.                   |
+
+### `InterfaceSpec`
+
+| Property  | Type          | Required | Description       |
+| --------- | ------------- | -------- | ----------------- |
+| `inputs`  | `Parameter[]` | No       | Input parameters. |
+| `outputs` | `Parameter[]` | No       | Output results.   |
+
+### `Parameter`
+
+| Property      | Type      | Required | Description |
+| ------------- | --------- | -------- | ----------- |
+| `name`        | `string`  | Yes      | -           |
+| `type`        | `string`  | Yes      | -           |
+| `description` | `string`  | No       | -           |
+| `required`    | `boolean` | No       | -           |
+| `default`     | `unknown` | No       | -           |

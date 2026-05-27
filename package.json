@@ -22,33 +22,29 @@
   "scripts": {
     "generate": "bun run generate:schema && bun run generate:proposals",
     "generate:schema": "bun run generate:schema:json & bun run generate:schema:md & wait",
-    "generate:schema:json": "tsx scripts/generate-schemas.ts",
-    "generate:schema:md": "for d in schema/*/; do cp \"$d/schema.mdx\" \"docs/specification/$(basename $d)/schema.mdx\"; done",
+    "generate:schema:json": "tsx scripts/generate-schemas-json.ts",
+    "generate:schema:md": "tsx scripts/generate-schema-md.ts && for d in schema/*/; do cp \"$d/schema.mdx\" \"docs/specification/$(basename $d)/schema.mdx\"; done && prettier --write schema/draft/schema.mdx docs/specification/draft/schema.mdx",
     "generate:proposals": "tsx scripts/render-proposals.ts",
-
     "format": "bun run format:docs && bun run format:schema",
     "format:docs": "prettier --write \"**/*.{md,mdx}\" --ignore-path .prettierignore",
     "format:schema": "prettier --write \"schema/**/*.ts\"",
-
     "check": "bun run check:schema && bun run check:docs && bun run check:proposals",
     "check:schema": "bun run check:schema:ts && bun run check:schema:json && bun run check:schema:examples && bun run check:schema:md",
     "check:schema:ts": "tsc --noEmit && prettier --check \"schema/**/*.ts\"",
-    "check:schema:json": "tsx scripts/generate-schemas.ts --check",
+    "check:schema:json": "tsx scripts/generate-schemas-json.ts --check",
     "check:schema:examples": "tsx scripts/validate-examples.ts",
     "check:schema:md": "diff -q schema/draft/schema.mdx docs/specification/draft/schema.mdx || exit 1",
     "check:docs": "bun run check:docs:format",
     "check:docs:format": "prettier --check \"**/*.{md,mdx}\"",
     "check:proposals": "tsx scripts/render-proposals.ts --check",
-
     "serve:docs": "cd docs && npx mint dev",
-
     "prep": "bun run check:schema:ts && bun run generate && bun run check:docs && bun run check:proposals && bun run format"
   },
   "devDependencies": {
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
-    "prettier": "^3.0.0",
+    "prettier": "^3.8.3",
     "tsx": "^4.0.0",
     "typedoc": "^0.28.0",
     "typescript": "^5.0.0",
