@@ -1,0 +1,10 @@
+{
+  "primary": "object_oriented",
+  "memory_model": "gc",
+  "type_system": "static_strong",
+  "error_handling": "exceptions",
+  "concurrency": "threads",
+  "has_first_class_functions": true,
+  "has_macros": false,
+  "unsafe_constructs": "none"
+}

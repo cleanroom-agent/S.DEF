@@ -1,0 +1,16 @@
+{
+  "id": "hint-ocaml-match-to-java-switch",
+  "source_pattern": "function with pattern matching over ADT with >3 variants",
+  "target_pattern": "switch expression over sealed enum with exhaustive checking",
+  "transformation": "Map OCaml `match` over a variant to a Java `switch` over a sealed interface. Wrap each branch in a method on the variant interface (visitor pattern) or use Java 21+ pattern matching for the `switch`. Preserve exhaustiveness by listing every variant or using a `_ -> throw new IllegalStateException(...)` fallback that the Consumer can later detect and tighten.",
+  "applies_to": {
+    "source": ["functional"],
+    "target": ["object_oriented", "imperative"]
+  },
+  "examples": [
+    {
+      "source_sdef_excerpt": "FunctionSpec { name: \"describeExpr\", logic: \"match e with EInt n -> 'int' | EBool b -> 'bool' | EVar s -> 'var' | ELam _ -> 'lambda' | EApp _ -> 'app'\" }",
+      "target_code": "String describeExpr(Expr e) { return switch (e) { case EInt n -> \"int\"; case EBool b -> \"bool\"; case EVar s -> \"var\"; case ELam l -> \"lambda\"; case EApp a -> \"app\"; }; }"
+    }
+  ]
+}

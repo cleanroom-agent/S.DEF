@@ -1,0 +1,10 @@
+{
+  "reconstruction_class": "behavior_contract",
+  "confidence": 99,
+  "evidence": [
+    "Documented in commands.def as a public command",
+    "Has client SDK test coverage in tcadis",
+    "Documented in RESP protocol spec"
+  ],
+  "rationale": "Public RESP command — wire format and semantics must be preserved 1:1 to maintain inter-client compatibility."
+}

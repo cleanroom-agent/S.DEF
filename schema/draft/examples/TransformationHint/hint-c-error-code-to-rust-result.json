@@ -1,0 +1,16 @@
+{
+  "id": "hint-c-error-code-to-rust-result",
+  "source_pattern": "function returning int error code (-1 on failure, 0 on success)",
+  "target_pattern": "function returning Result<T, E>",
+  "transformation": "Map the C error code return to a Rust Result. Use the `?` operator at the call site instead of explicit `if (rc == -1) goto cleanup;` blocks. Define an error enum that captures the failure modes documented in the C code's per-call-site comments.",
+  "applies_to": {
+    "source": ["procedural", "imperative"],
+    "target": ["systems", "object_oriented", "functional"]
+  },
+  "examples": [
+    {
+      "source_sdef_excerpt": "FunctionSpec { name: \"loadRDB\", outputs: [{ name: \"rc\", type: \"int\" }], errors: [\"EIO\", \"EINVAL\"], logic: \"if (rioRead(...) == -1) return -1;\" }",
+      "target_code": "pub fn load_rdb() -> Result<(), LoadError> { rio.read(...)?; Ok(()) }"
+    }
+  ]
+}

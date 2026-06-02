@@ -124,6 +124,13 @@ and generated into JSON Schema at [schema/draft/schema.json](https://github.com/
 - [Dependencies & Resources](#dependencies-resources)
   - [`Dependency`](#dependency)
   - [`Resource`](#resource)
+- [Reconstruction Policy (PTDL — Paradigm Translation & Decoupling Layer)](#reconstruction-policy-ptdl-paradigm-translation-decoupling-layer)
+  - [`ReconstructionPolicy`](#reconstructionpolicy)
+  - [`ParadigmMetadata`](#paradigmmetadata)
+  - [`ElementOrigin`](#elementorigin)
+  - [`LibrarySubstitution`](#librarysubstitution)
+  - [`LibraryCandidate`](#librarycandidate)
+  - [`TransformationHint`](#transformationhint)
 
 ## Root Definition
 
@@ -134,27 +141,28 @@ Contains all layers of software description: system boundary, domain model,
 architecture, data models, contracts, behavior, UI, tests, design decisions,
 reconstruction rules, dependencies, and deployment requirements.
 
-| Property               | Type                  | Required | Description                                                                     |
-| ---------------------- | --------------------- | -------- | ------------------------------------------------------------------------------- |
-| `sdef_version`         | `string`              | Yes      | Schema version (date-based, e.g. "2026-05-27").                                 |
-| `name`                 | `string`              | Yes      | The software identifier (e.g. "com.example.todoapp").                           |
-| `description`          | `string`              | No       | Human-readable description.                                                     |
-| `version`              | `string`              | No       | Version of the software being described.                                        |
-| `metadata`             | `SoftwareMetadata`    | No       | Metadata associated with the software.                                          |
-| `system_boundary`      | `SystemBoundary`      | No       | System boundary — what the software does and does NOT do.                       |
-| `design_decisions`     | `DesignDecision[]`    | No       | Design decisions with rationale.                                                |
-| `version_history`      | `VersionRecord[]`     | No       | Version history — tracks the evolution of the software over time.               |
-| `domain`               | `Domain`              | No       | Domain model — business concepts, rules, and processes.                         |
-| `architecture`         | `Architecture`        | No       | Architecture — structural layers, modules, and communication patterns.          |
-| `data_models`          | `DataModel[]`         | No       | Data model — entities, their attributes, relationships, and validation rules.   |
-| `contracts`            | `Contracts`           | No       | Contracts — interfaces, classes, enums, and API endpoints.                      |
-| `behavior`             | `Behavior`            | No       | Behavior — functions, flows, and state machines.                                |
-| `ui`                   | `UserInterface`       | No       | User interface — screens, components, interactions, and navigation.             |
-| `tests`                | `TestContract`        | No       | Test contracts — unit tests, integration tests, and acceptance criteria.        |
-| `reconstruction_rules` | `ReconstructionRules` | No       | Reconstruction rules — fidelity target, technology constraints, and directives. |
-| `dependencies`         | `Dependency[]`        | No       | External software dependencies (packages, services).                            |
-| `deployment`           | `Deployment`          | No       | Deployment and runtime requirements.                                            |
-| `resources`            | `Resource[]`          | No       | Resources the software provides or consumes.                                    |
+| Property                | Type                   | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------------- | ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sdef_version`          | `string`               | Yes      | Schema version (date-based, e.g. "2026-05-27").                                                                                                                                                                                                                                                                                                                                                                         |
+| `name`                  | `string`               | Yes      | The software identifier (e.g. "com.example.todoapp").                                                                                                                                                                                                                                                                                                                                                                   |
+| `description`           | `string`               | No       | Human-readable description.                                                                                                                                                                                                                                                                                                                                                                                             |
+| `version`               | `string`               | No       | Version of the software being described.                                                                                                                                                                                                                                                                                                                                                                                |
+| `metadata`              | `SoftwareMetadata`     | No       | Metadata associated with the software.                                                                                                                                                                                                                                                                                                                                                                                  |
+| `system_boundary`       | `SystemBoundary`       | No       | System boundary — what the software does and does NOT do.                                                                                                                                                                                                                                                                                                                                                               |
+| `design_decisions`      | `DesignDecision[]`     | No       | Design decisions with rationale.                                                                                                                                                                                                                                                                                                                                                                                        |
+| `version_history`       | `VersionRecord[]`      | No       | Version history — tracks the evolution of the software over time.                                                                                                                                                                                                                                                                                                                                                       |
+| `domain`                | `Domain`               | No       | Domain model — business concepts, rules, and processes.                                                                                                                                                                                                                                                                                                                                                                 |
+| `architecture`          | `Architecture`         | No       | Architecture — structural layers, modules, and communication patterns.                                                                                                                                                                                                                                                                                                                                                  |
+| `data_models`           | `DataModel[]`          | No       | Data model — entities, their attributes, relationships, and validation rules.                                                                                                                                                                                                                                                                                                                                           |
+| `contracts`             | `Contracts`            | No       | Contracts — interfaces, classes, enums, and API endpoints.                                                                                                                                                                                                                                                                                                                                                              |
+| `behavior`              | `Behavior`             | No       | Behavior — functions, flows, and state machines.                                                                                                                                                                                                                                                                                                                                                                        |
+| `ui`                    | `UserInterface`        | No       | User interface — screens, components, interactions, and navigation.                                                                                                                                                                                                                                                                                                                                                     |
+| `tests`                 | `TestContract`         | No       | Test contracts — unit tests, integration tests, and acceptance criteria.                                                                                                                                                                                                                                                                                                                                                |
+| `reconstruction_rules`  | `ReconstructionRules`  | No       | Reconstruction rules — fidelity target, technology constraints, and directives.                                                                                                                                                                                                                                                                                                                                         |
+| `reconstruction_policy` | `ReconstructionPolicy` | No       | Reconstruction policy (PTDL) — cross-language/paradigm directives that tell the consumer agent which S.DEF elements are source-language implementation artifacts and should be omitted, replaced, or translated when rebuilding in a different language or paradigm. Orthogonal to `reconstruction_rules`, which handles the time dimension (v1 vs v2); this handles the language dimension (C vs Rust, OCaml vs Java). |
+| `dependencies`          | `Dependency[]`         | No       | External software dependencies (packages, services).                                                                                                                                                                                                                                                                                                                                                                    |
+| `deployment`            | `Deployment`           | No       | Deployment and runtime requirements.                                                                                                                                                                                                                                                                                                                                                                                    |
+| `resources`             | `Resource[]`           | No       | Resources the software provides or consumes.                                                                                                                                                                                                                                                                                                                                                                            |
 
 ## Metadata
 
@@ -430,36 +438,38 @@ layers, modules, components, and communication patterns.
 A Data Model describes a data entity — its logical meaning,
 physical representation, attributes, relationships, and validation rules.
 
-| Property           | Type                 | Required | Description                                                   |
-| ------------------ | -------------------- | -------- | ------------------------------------------------------------- |
-| `entity`           | `string`             | Yes      | Entity name (e.g. "User", "Order").                           |
-| `status`           | `string`             | No       | Lifecycle status: "active" (current), "deprecated", "legacy". |
-| `version`          | `string`             | No       | Version this entity was introduced in.                        |
-| `deprecated`       | `DeprecationInfo`    | No       | Deprecation metadata.                                         |
-| `description`      | `string`             | No       | What this entity represents in the domain.                    |
-| `logical_model`    | `string`             | No       | The logical model — business meaning in natural language.     |
-| `attributes`       | `DataAttribute[]`    | No       | The attributes of this entity.                                |
-| `relationships`    | `DataRelationship[]` | No       | Relationships to other entities.                              |
-| `validation_rules` | `string[]`           | No       | Validation rules that apply to this entity.                   |
-| `physical_design`  | `PhysicalDesign`     | No       | Physical design hints (indexes, primary key).                 |
+| Property           | Type                 | Required | Description                                                                                                                                                                                                       |
+| ------------------ | -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `entity`           | `string`             | Yes      | Entity name (e.g. "User", "Order").                                                                                                                                                                               |
+| `status`           | `string`             | No       | Lifecycle status: "active" (current), "deprecated", "legacy".                                                                                                                                                     |
+| `version`          | `string`             | No       | Version this entity was introduced in.                                                                                                                                                                            |
+| `deprecated`       | `DeprecationInfo`    | No       | Deprecation metadata.                                                                                                                                                                                             |
+| `description`      | `string`             | No       | What this entity represents in the domain.                                                                                                                                                                        |
+| `logical_model`    | `string`             | No       | The logical model — business meaning in natural language.                                                                                                                                                         |
+| `attributes`       | `DataAttribute[]`    | No       | The attributes of this entity.                                                                                                                                                                                    |
+| `relationships`    | `DataRelationship[]` | No       | Relationships to other entities.                                                                                                                                                                                  |
+| `validation_rules` | `string[]`           | No       | Validation rules that apply to this entity.                                                                                                                                                                       |
+| `physical_design`  | `PhysicalDesign`     | No       | Physical design hints (indexes, primary key).                                                                                                                                                                     |
+| `origin`           | `ElementOrigin`      | No       | Reconstruction provenance — classifies this entity into one of four tiers (behavior_contract / algorithm / idiom / incidental) so the consumer agent knows how to handle it during cross-language reconstruction. |
 
 ### `DataAttribute`
 
-| Property        | Type                   | Required | Description                                                              |
-| --------------- | ---------------------- | -------- | ------------------------------------------------------------------------ |
-| `name`          | `string`               | Yes      | -                                                                        |
-| `type`          | `string`               | Yes      | Logical type (e.g. "UUID", "string", "boolean", "timestamp", "Decimal"). |
-| `format`        | `string`               | No       | A format hint (e.g. "email", "uri", "uuid").                             |
-| `description`   | `string`               | No       | -                                                                        |
-| `required`      | `boolean`              | No       | -                                                                        |
-| `default`       | `unknown`              | No       | Default value.                                                           |
-| `identity`      | `boolean`              | No       | Whether this is the identity / primary key.                              |
-| `generated`     | `boolean`              | No       | Whether this value is auto-generated.                                    |
-| `unique`        | `boolean`              | No       | Whether this value is unique.                                            |
-| `internal`      | `boolean`              | No       | Whether this is internal (not exposed to clients).                       |
-| `deprecated`    | `boolean`              | No       | Whether this field is deprecated (retained for compat).                  |
-| `compatibility` | `CompatibilityMapping` | No       | How this legacy field maps to the current schema.                        |
-| `constraints`   | `string[]`             | No       | Constraints (e.g. "max_length:200", "non_empty").                        |
+| Property        | Type                   | Required | Description                                                                                                                                                                               |
+| --------------- | ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`          | `string`               | Yes      | -                                                                                                                                                                                         |
+| `type`          | `string`               | Yes      | Logical type (e.g. "UUID", "string", "boolean", "timestamp", "Decimal").                                                                                                                  |
+| `format`        | `string`               | No       | A format hint (e.g. "email", "uri", "uuid").                                                                                                                                              |
+| `description`   | `string`               | No       | -                                                                                                                                                                                         |
+| `required`      | `boolean`              | No       | -                                                                                                                                                                                         |
+| `default`       | `unknown`              | No       | Default value.                                                                                                                                                                            |
+| `identity`      | `boolean`              | No       | Whether this is the identity / primary key.                                                                                                                                               |
+| `generated`     | `boolean`              | No       | Whether this value is auto-generated.                                                                                                                                                     |
+| `unique`        | `boolean`              | No       | Whether this value is unique.                                                                                                                                                             |
+| `internal`      | `boolean`              | No       | Whether this is internal (not exposed to clients).                                                                                                                                        |
+| `deprecated`    | `boolean`              | No       | Whether this field is deprecated (retained for compat).                                                                                                                                   |
+| `compatibility` | `CompatibilityMapping` | No       | How this legacy field maps to the current schema.                                                                                                                                         |
+| `constraints`   | `string[]`             | No       | Constraints (e.g. "max_length:200", "non_empty").                                                                                                                                         |
+| `origin`        | `ElementOrigin`        | No       | Reconstruction provenance — see [`ElementOrigin`]. Tier D for an attribute means the consumer should drop the field entirely (e.g. a C-specific `refcount` field has no Rust equivalent). |
 
 ### `DataRelationship`
 
@@ -520,41 +530,44 @@ Consumer agents can optionally exclude these when generating clean code.
 
 ### `InterfaceContract`
 
-| Property      | Type               | Required | Description                                                   |
-| ------------- | ------------------ | -------- | ------------------------------------------------------------- |
-| `name`        | `string`           | Yes      | -                                                             |
-| `is_abstract` | `boolean`          | No       | Indicates this is abstract and must be implemented.           |
-| `status`      | `string`           | No       | Lifecycle status: "active" (current), "deprecated", "legacy". |
-| `version`     | `string`           | No       | Version this interface was introduced in.                     |
-| `deprecated`  | `DeprecationInfo`  | No       | Deprecation metadata.                                         |
-| `description` | `string`           | No       | Description.                                                  |
-| `methods`     | `ContractMethod[]` | No       | Methods defined on this interface.                            |
-| `invariants`  | `string[]`         | No       | Invariants that all implementations must maintain.            |
+| Property      | Type               | Required | Description                                                                                                                                        |
+| ------------- | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | `string`           | Yes      | -                                                                                                                                                  |
+| `is_abstract` | `boolean`          | No       | Indicates this is abstract and must be implemented.                                                                                                |
+| `status`      | `string`           | No       | Lifecycle status: "active" (current), "deprecated", "legacy".                                                                                      |
+| `version`     | `string`           | No       | Version this interface was introduced in.                                                                                                          |
+| `deprecated`  | `DeprecationInfo`  | No       | Deprecation metadata.                                                                                                                              |
+| `description` | `string`           | No       | Description.                                                                                                                                       |
+| `methods`     | `ContractMethod[]` | No       | Methods defined on this interface.                                                                                                                 |
+| `invariants`  | `string[]`         | No       | Invariants that all implementations must maintain.                                                                                                 |
+| `origin`      | `ElementOrigin`    | No       | Reconstruction provenance — see [`ElementOrigin`]. Tier C (idiom) is the common case for interfaces implemented as classes in the source language. |
 
 ### `ClassContract`
 
-| Property       | Type               | Required | Description                                                   |
-| -------------- | ------------------ | -------- | ------------------------------------------------------------- |
-| `name`         | `string`           | Yes      | -                                                             |
-| `status`       | `string`           | No       | Lifecycle status: "active" (current), "deprecated", "legacy". |
-| `version`      | `string`           | No       | Version this class was introduced in.                         |
-| `deprecated`   | `DeprecationInfo`  | No       | Deprecation metadata.                                         |
-| `description`  | `string`           | No       | Description.                                                  |
-| `implements`   | `string[]`         | No       | Interfaces this class implements.                             |
-| `dependencies` | `string[]`         | No       | Other contracts this class depends on.                        |
-| `methods`      | `ContractMethod[]` | No       | Methods defined on this class.                                |
+| Property       | Type               | Required | Description                                                                                                                                                                                                       |
+| -------------- | ------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`         | `string`           | Yes      | -                                                                                                                                                                                                                 |
+| `status`       | `string`           | No       | Lifecycle status: "active" (current), "deprecated", "legacy".                                                                                                                                                     |
+| `version`      | `string`           | No       | Version this class was introduced in.                                                                                                                                                                             |
+| `deprecated`   | `DeprecationInfo`  | No       | Deprecation metadata.                                                                                                                                                                                             |
+| `description`  | `string`           | No       | Description.                                                                                                                                                                                                      |
+| `implements`   | `string[]`         | No       | Interfaces this class implements.                                                                                                                                                                                 |
+| `dependencies` | `string[]`         | No       | Other contracts this class depends on.                                                                                                                                                                            |
+| `methods`      | `ContractMethod[]` | No       | Methods defined on this class.                                                                                                                                                                                    |
+| `origin`       | `ElementOrigin`    | No       | Reconstruction provenance — see [`ElementOrigin`]. Tier D for a class is common when the class is a C-language workaround (e.g. a manually refcounted union type) that has no equivalent in a memory-safe target. |
 
 ### `ContractMethod`
 
-| Property         | Type              | Required | Description                                                            |
-| ---------------- | ----------------- | -------- | ---------------------------------------------------------------------- |
-| `signature`      | `string`          | Yes      | Method signature (e.g. "create_task(input: CreateTaskInput) -> Task"). |
-| `status`         | `string`          | No       | Lifecycle status: "active" (current), "deprecated", "legacy".          |
-| `deprecated`     | `DeprecationInfo` | No       | Deprecation metadata.                                                  |
-| `behavior`       | `string`          | No       | Behavioral description in natural language.                            |
-| `preconditions`  | `string[]`        | No       | Conditions that must be true before calling.                           |
-| `postconditions` | `string[]`        | No       | Conditions guaranteed true after execution.                            |
-| `errors`         | `string[]`        | No       | Error cases.                                                           |
+| Property         | Type              | Required | Description                                                                                                                                                                                           |
+| ---------------- | ----------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signature`      | `string`          | Yes      | Method signature (e.g. "create_task(input: CreateTaskInput) -> Task").                                                                                                                                |
+| `status`         | `string`          | No       | Lifecycle status: "active" (current), "deprecated", "legacy".                                                                                                                                         |
+| `deprecated`     | `DeprecationInfo` | No       | Deprecation metadata.                                                                                                                                                                                 |
+| `behavior`       | `string`          | No       | Behavioral description in natural language.                                                                                                                                                           |
+| `preconditions`  | `string[]`        | No       | Conditions that must be true before calling.                                                                                                                                                          |
+| `postconditions` | `string[]`        | No       | Conditions guaranteed true after execution.                                                                                                                                                           |
+| `errors`         | `string[]`        | No       | Error cases.                                                                                                                                                                                          |
+| `origin`         | `ElementOrigin`   | No       | Reconstruction provenance — see [`ElementOrigin`]. Tier A (behavior contract) is the default; methods of public API contracts should not be classified as D unless the contract itself is deprecated. |
 
 ### `EnumContract`
 
@@ -567,20 +580,21 @@ Consumer agents can optionally exclude these when generating clean code.
 
 ### `ApiContract`
 
-| Property        | Type                          | Required | Description                                                        |
-| --------------- | ----------------------------- | -------- | ------------------------------------------------------------------ |
-| `method`        | `string`                      | Yes      | HTTP method or protocol operation (e.g. "POST", "GET").            |
-| `path`          | `string`                      | Yes      | API path (e.g. "/api/v1/tasks").                                   |
-| `auth`          | `string`                      | No       | Auth requirement (e.g. "bearer_jwt", "none").                      |
-| `status`        | `string`                      | No       | Lifecycle status: "active" (current), "deprecated", "legacy".      |
-| `deprecated`    | `DeprecationInfo`             | No       | Deprecation metadata.                                              |
-| `compatibility` | `CompatibilityMapping`        | No       | Compatibility layer — how this legacy API maps to the current one. |
-| `description`   | `string`                      | No       | Description.                                                       |
-| `request`       | `ApiRequest`                  | No       | Request specification.                                             |
-| `response`      | `Record<string, ApiResponse>` | No       | Response specification keyed by status code.                       |
-| `behavior`      | `string`                      | No       | Behavioral description.                                            |
-| `side_effects`  | `string[]`                    | No       | Side effects of this API call.                                     |
-| `rate_limit`    | `string`                      | No       | Rate limiting (e.g. "100 req/min per user").                       |
+| Property        | Type                          | Required | Description                                                                                                                                         |
+| --------------- | ----------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `method`        | `string`                      | Yes      | HTTP method or protocol operation (e.g. "POST", "GET").                                                                                             |
+| `path`          | `string`                      | Yes      | API path (e.g. "/api/v1/tasks").                                                                                                                    |
+| `auth`          | `string`                      | No       | Auth requirement (e.g. "bearer_jwt", "none").                                                                                                       |
+| `status`        | `string`                      | No       | Lifecycle status: "active" (current), "deprecated", "legacy".                                                                                       |
+| `deprecated`    | `DeprecationInfo`             | No       | Deprecation metadata.                                                                                                                               |
+| `compatibility` | `CompatibilityMapping`        | No       | Compatibility layer — how this legacy API maps to the current one.                                                                                  |
+| `description`   | `string`                      | No       | Description.                                                                                                                                        |
+| `request`       | `ApiRequest`                  | No       | Request specification.                                                                                                                              |
+| `response`      | `Record<string, ApiResponse>` | No       | Response specification keyed by status code.                                                                                                        |
+| `behavior`      | `string`                      | No       | Behavioral description.                                                                                                                             |
+| `side_effects`  | `string[]`                    | No       | Side effects of this API call.                                                                                                                      |
+| `rate_limit`    | `string`                      | No       | Rate limiting (e.g. "100 req/min per user").                                                                                                        |
+| `origin`        | `ElementOrigin`               | No       | Reconstruction provenance — see [`ElementOrigin`]. Wire-format APIs (e.g. RESP, gRPC method signatures) should be Tier A with `confidence >= 0.95`. |
 
 ### `ApiRequest`
 
@@ -613,16 +627,17 @@ flows, and state machines.
 
 ### `FunctionSpec`
 
-| Property        | Type              | Required | Description                                                |
-| --------------- | ----------------- | -------- | ---------------------------------------------------------- |
-| `name`          | `string`          | Yes      | Function name.                                             |
-| `description`   | `string`          | No       | What this function does.                                   |
-| `inputs`        | `FunctionParam[]` | No       | Input parameters.                                          |
-| `outputs`       | `FunctionParam[]` | No       | Output values.                                             |
-| `logic`         | `string`          | No       | Pseudocode logic (using S.DEF standard pseudocode syntax). |
-| `complexity`    | `string`          | No       | Computational complexity (e.g. "O(n)").                    |
-| `pure_function` | `boolean`         | No       | Whether this function is pure (no side effects).           |
-| `edge_cases`    | `EdgeCase[]`      | No       | Edge cases and their expected behavior.                    |
+| Property        | Type              | Required | Description                                                                                                                                                                                   |
+| --------------- | ----------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`          | `string`          | Yes      | Function name.                                                                                                                                                                                |
+| `description`   | `string`          | No       | What this function does.                                                                                                                                                                      |
+| `inputs`        | `FunctionParam[]` | No       | Input parameters.                                                                                                                                                                             |
+| `outputs`       | `FunctionParam[]` | No       | Output values.                                                                                                                                                                                |
+| `logic`         | `string`          | No       | Pseudocode logic (using S.DEF standard pseudocode syntax).                                                                                                                                    |
+| `complexity`    | `string`          | No       | Computational complexity (e.g. "O(n)").                                                                                                                                                       |
+| `pure_function` | `boolean`         | No       | Whether this function is pure (no side effects).                                                                                                                                              |
+| `edge_cases`    | `EdgeCase[]`      | No       | Edge cases and their expected behavior.                                                                                                                                                       |
+| `origin`        | `ElementOrigin`   | No       | Reconstruction provenance — see [`ElementOrigin`]. Tier B (algorithm) is the default for non-trivial functions. Tier D applies to functions that exist only as language-specific workarounds. |
 
 ### `FunctionParam`
 
@@ -1239,3 +1254,203 @@ and priority-ordered directives.
 | `type`        | `string` | Yes      | Resource type (e.g., database, file, endpoint). |
 | `uri`         | `string` | No       | URI identifying the resource.                   |
 | `description` | `string` | No       | Description.                                    |
+
+## Reconstruction Policy (PTDL — Paradigm Translation & Decoupling Layer)
+
+### `ReconstructionPolicy`
+
+Per-document cross-language/paradigm reconstruction policy.
+This block tells the consumer agent how to handle S.DEF elements that
+originate from a different language or paradigm. It is orthogonal to
+`reconstruction_rules`, which handles the time dimension (v1 vs v2).
+
+# When to use
+
+Whenever the source software is written in a different language or
+paradigm than the target. For same-language refactoring, this block
+can be omitted entirely.
+
+# Four-tier classification
+
+Each S.DEF element carries an `origin.reconstruction_class` tag:
+| Tier | Class | Consumer action |
+|------|---------------------|-----------------|
+| A | `behavior_contract` | Preserve 1:1 (signatures, semantics, error cases) |
+| B | `algorithm` | Keep algorithm body, swap data structures |
+| C | `idiom` | Translate to target-language idioms |
+| D | `incidental` | Omit — let the target language fill the gap |
+
+| Property                   | Type                                  | Required | Description                                                                                                                                                                                                                                    |
+| -------------------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `default_tier_c_strategy`  | `"translate" \| "preserve" \| "omit"` | No       | Default strategy for Tier C elements when no per-element override exists. - `translate`: rewrite using target-language idioms (default) - `preserve`: keep the source-language structure as-is - `omit`: drop entirely                         |
+| `default_tier_d_strategy`  | `"translate" \| "preserve" \| "omit"` | No       | Default strategy for Tier D elements when no per-element override exists. - `omit`: drop entirely (default) - `translate`: still attempt a translation - `preserve`: keep the source-language structure as-is                                  |
+| `source_paradigm`          | `ParadigmMetadata`                    | No       | Source-language paradigm fingerprint. Producer-inferred, may be human-overridden.                                                                                                                                                              |
+| `target_paradigm`          | `ParadigmMetadata`                    | No       | Target-language paradigm fingerprint. Consumer-provided or auto-detected.                                                                                                                                                                      |
+| `library_substitutions`    | `LibrarySubstitution[]`               | No       | Library substitution suggestions — Producer-inferred from dependency analysis.                                                                                                                                                                 |
+| `transformation_hints`     | `TransformationHint[]`                | No       | Paradigm translation rules. May be document-specific or referenced from a global pool keyed by paradigm pair (e.g. `c_to_rust`, `ocaml_to_java`).                                                                                              |
+| `allow_extra_dependencies` | `boolean`                             | No       | Whether the consumer agent may introduce dependencies that the original software did not use. Required for Tier D → library substitution flows. Default: `true`.                                                                               |
+| `allow_behavior_drift`     | `boolean`                             | No       | Whether the consumer agent may alter externally observable behavior. Default: `false` — behavior must be 1:1. Set to `true` only when the user explicitly accepts that the rebuild is a "reinterpretation" rather than a faithful replication. |
+
+### `ParadigmMetadata`
+
+Language paradigm fingerprint — describes how a language "thinks."
+This is the machine-readable version of "C is manual-memory, single-threaded,
+error-code-driven; Rust is ownership-based, thread-or-async, Result-driven."
+
+| Property                    | Type                                                   | Required                                                     | Description                                                                                                                          |
+| --------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `primary`                   | `\| "imperative"                                       |
+| \| "object_oriented"        |
+| \| "functional"             |
+| \| "logic"                  |
+| \| "procedural"             |
+| \| "scripting"              |
+| \| "systems"                |
+| \| "reactive"               |
+| \| "concurrent_actor"`      | Yes                                                    | Primary paradigm.                                            |
+| `secondary`                 | `\| "object_oriented"                                  |
+| \| "functional"             |
+| \| "generic"                |
+| \| "reflection"             |
+| \| "metaprogramming"`       | No                                                     | Optional secondary paradigm (e.g. Kotlin: oop + functional). |
+| `memory_model`              | `"manual" \| "gc" \| "rc" \| "ownership" \| "region"`  | Yes                                                          | Memory management model.                                                                                                             |
+| `type_system`               | `\| "dynamic"                                          |
+| \| "static_weak"            |
+| \| "static_strong"          |
+| \| "static_dependent"       |
+| \| "gradual"`               | Yes                                                    | Type system strength.                                        |
+| `error_handling`            | `\| "exceptions"                                       |
+| \| "error_codes"            |
+| \| "result_type"            |
+| \| "panics"                 |
+| \| "longjmp"                |
+| \| "multiple_values"`       | Yes                                                    | Default error-propagation idiom.                             |
+| `concurrency`               | `\| "threads"                                          |
+| \| "async_await"            |
+| \| "actors"                 |
+| \| "goroutines"             |
+| \| "event_loop"             |
+| \| "single_threaded"`       | Yes                                                    | Concurrency model.                                           |
+| `has_first_class_functions` | `boolean`                                              | No                                                           | Whether the language has first-class functions / closures.                                                                           |
+| `has_macros`                | `boolean`                                              | No                                                           | Whether the language has syntactic macros / compile-time code generation.                                                            |
+| `unsafe_constructs`         | `"explicit_unsafe" \| "implicit_everywhere" \| "none"` | No                                                           | How unsafe operations (raw pointers, unions, FFI) are expressed. `none` means the language does not expose unsafe operations at all. |
+
+### `ElementOrigin`
+
+Per-element reconstruction provenance — the four-tier classification.
+The Producer attaches this to every entity it extracts. The Consumer
+reads it to decide what to generate, replace, or omit.
+
+# Decision matrix
+
+| Tier | Source impl. contains      | Consumer action                      |
+| ---- | -------------------------- | ------------------------------------ |
+| A    | Public API / wire format   | Preserve 1:1                         |
+| B    | Algorithm body             | Keep algorithm, swap data structures |
+| C    | Source-language idiom      | Translate to target-language idiom   |
+| D    | Source-language workaround | Omit (target language fills the gap) |
+
+# Confidence
+
+`confidence` is a 0.0–1.0 score from the Producer's classifier. Consumer
+agents should treat `confidence < 0.6` as "advisory only" and double-check
+before applying Tier D (omit) — silently dropping a public API would
+break behavioral equivalence.
+
+| Property               | Type                                  | Required                                            | Description                                                                                                                                                                                                                                                                                                   |
+| ---------------------- | ------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reconstruction_class` | `\| "behavior_contract"               |
+| \| "algorithm"         |
+| \| "idiom"             |
+| \| "incidental"`       | Yes                                   | Tier classification. See the decision matrix above. |
+| `confidence`           | `number`                              | Yes                                                 | Producer-inferred confidence in the 0–100 range (integer). `100` = certain; `>= 60` = reliable; `< 60` = advisory only. Consumer agents should treat `confidence < 60` as "advisory only" and double-check before applying Tier D (omit) — silently dropping a public API would break behavioral equivalence. |
+| `evidence`             | `string[]`                            | Yes                                                 | Evidence used to make the classification. Audit-friendly free-form strings.                                                                                                                                                                                                                                   |
+| `rationale`            | `string`                              | Yes                                                 | Human-readable rationale.                                                                                                                                                                                                                                                                                     |
+| `override_strategy`    | `"translate" \| "preserve" \| "omit"` | No                                                  | Optional per-element override of the document-level `ReconstructionPolicy.default_tier_*_strategy` setting.                                                                                                                                                                                                   |
+
+### `LibrarySubstitution`
+
+Suggestion to replace an original implementation with a library in the
+target ecosystem.
+The Producer emits one of these for each original-software function
+that re-implements something a standard library does (SHA-1, CRC,
+hash tables, custom allocators, etc.). The Consumer selects the
+highest-trust candidate matching the target ecosystem.
+
+| Property                  | Type     | Required | Description                                                                                                            |
+| ------------------------- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `id`                      | `string` | Yes      | Unique ID (also used in the symbol registry).                                                                          |
+| `function_signature`      | `string` | Yes      | Signature of the function being replaced, in target-language notation. Example: `"fn sha1(bytes: &[u8]) -> [u8; 20]"`. |
+| `original_implementation` | `{       |
+
+    /** Display name (e.g. `"SHA1"`, `"zmalloc"`, `"sds"`). */
+    name: string;
+    /** Source file (e.g. `"src/sha1.c"`). */
+    source_file?: string;
+    /** Lines of code in the original implementation. */
+    lines_of_code?: number;
+    /** SPDX license identifier of the original (e.g. `"BSD-3-Clause"`). */
+    license?: string;
+
+}`| Yes | What the original software actually used. |
+|`candidates`|`LibraryCandidate[]`| Yes | Ranked candidates. Consumer picks the highest-trust one matching the target ecosystem. |
+|`selection_rule`|`string`| No | Optional selection rule (DSL string). Default behavior: pick the candidate with the highest`trust`in the target ecosystem. Example:`"target.language == 'rust' ? first : omit"` |
+
+### `LibraryCandidate`
+
+A single library candidate for a substitution.
+
+| Property          | Type             | Required                  | Description                                                                                                                                      |
+| ----------------- | ---------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ecosystem`       | `\| "rust_crate" |
+| \| "npm"          |
+| \| "pypi"         |
+| \| "maven"        |
+| \| "go_module"    |
+| \| "java_jar"     |
+| \| "dotnet_nuget" |
+| \| "std"`         | Yes              | Target package ecosystem. |
+| `name`            | `string`         | Yes                       | Package / crate / module name. For `ecosystem = "std"`, this is the full path (e.g. `"std::collections::HashMap"`).                              |
+| `version`         | `string`         | No                        | Version constraint (e.g. `">=0.17"`, `"1.0"`, `"*"`). Omit for unversioned dependencies.                                                         |
+| `rationale`       | `string`         | Yes                       | Why this candidate is recommended.                                                                                                               |
+| `risks`           | `string[]`       | No                        | Known risks (e.g. `"uses nightly-only feature"`, `"has unmaintained dependencies"`).                                                             |
+| `trust`           | `number`         | Yes                       | Trust score in the 0–100 range (integer). Higher = stronger preference. `100` = production-grade; `>= 60` = reliable; `< 60` = use with caution. |
+
+### `TransformationHint`
+
+A source-pattern → target-pattern translation rule.
+Transformation hints are keyed by paradigm pair (e.g. `c → rust`,
+`ocaml → java`). They can be document-specific or referenced from a
+global pool via `sdef://hints/{source}_to_{target}/{slug}` URIs.
+
+# Source / target patterns
+
+The pattern strings are matched against S.DEF element characteristics.
+They are intentionally free-form (DSL) to allow future evolution
+without a schema change. Common forms include:
+
+- `"function with pattern matching over ADT with >3 variants"`
+- `"function returning int error code (-1)"`
+- `"function with manual malloc/free pair"`
+- `"data model with manual refcount attribute"`
+
+| Property         | Type     | Required | Description                                                               |
+| ---------------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `id`             | `string` | Yes      | Unique ID.                                                                |
+| `source_pattern` | `string` | Yes      | Source-side pattern (DSL, matched against S.DEF element characteristics). |
+| `target_pattern` | `string` | Yes      | Target-side pattern (DSL).                                                |
+| `transformation` | `string` | Yes      | Human-readable transformation rule + pseudocode.                          |
+| `applies_to`     | `{       |
+
+    /** Source paradigm primary values. */
+    source: string[];
+    /** Target paradigm primary values. */
+    target: string[];
+
+}`| Yes | Paradigm pairs this rule applies to. |
+|`examples`|`{
+/** S.DEF excerpt of the source pattern. \*/
+source_sdef_excerpt: string;
+/** Generated target code. \*/
+target_code: string;
+}[]` | No | Worked examples. |

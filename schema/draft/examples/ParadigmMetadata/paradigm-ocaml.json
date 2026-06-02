@@ -1,0 +1,10 @@
+{
+  "primary": "functional",
+  "memory_model": "gc",
+  "type_system": "static_dependent",
+  "error_handling": "result_type",
+  "concurrency": "threads",
+  "has_first_class_functions": true,
+  "has_macros": false,
+  "unsafe_constructs": "none"
+}

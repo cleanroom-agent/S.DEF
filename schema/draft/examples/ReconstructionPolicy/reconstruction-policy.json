@@ -1,0 +1,98 @@
+{
+  "default_tier_c_strategy": "translate",
+  "default_tier_d_strategy": "omit",
+  "source_paradigm": {
+    "primary": "procedural",
+    "memory_model": "manual",
+    "type_system": "static_weak",
+    "error_handling": "error_codes",
+    "concurrency": "single_threaded",
+    "has_first_class_functions": false,
+    "has_macros": true,
+    "unsafe_constructs": "implicit_everywhere"
+  },
+  "target_paradigm": {
+    "primary": "systems",
+    "secondary": "functional",
+    "memory_model": "ownership",
+    "type_system": "static_dependent",
+    "error_handling": "result_type",
+    "concurrency": "async_await",
+    "has_first_class_functions": true,
+    "has_macros": true,
+    "unsafe_constructs": "explicit_unsafe"
+  },
+  "library_substitutions": [
+    {
+      "id": "sub-sha1",
+      "function_signature": "fn sha1(bytes: &[u8]) -> [u8; 20]",
+      "original_implementation": {
+        "name": "SHA1",
+        "source_file": "src/sha1.c",
+        "lines_of_code": 280,
+        "license": "BSD-3-Clause"
+      },
+      "candidates": [
+        {
+          "ecosystem": "rust_crate",
+          "name": "ring",
+          "version": "0.17",
+          "rationale": "Vetted cryptographic library used by major Rust projects; provides SHA-1 via digest::SHA1_FOR_LEGACY_USE_ONLY.",
+          "risks": ["SHA-1 is deprecated for collision resistance; suitable only for legacy wire-protocol compatibility"],
+          "trust": 95
+        },
+        {
+          "ecosystem": "rust_crate",
+          "name": "sha1",
+          "version": "0.10",
+          "rationale": "Pure-Rust SHA-1 implementation; smaller dependency footprint than ring.",
+          "trust": 80
+        }
+      ]
+    },
+    {
+      "id": "sub-dict",
+      "function_signature": "struct Dict<K, V> { ... }",
+      "original_implementation": {
+        "name": "dict",
+        "source_file": "src/dict.c",
+        "lines_of_code": 760
+      },
+      "candidates": [
+        {
+          "ecosystem": "std",
+          "name": "std::collections::HashMap",
+          "rationale": "Standard-library hash map; equivalent semantics for the redis dict use cases.",
+          "trust": 99
+        },
+        {
+          "ecosystem": "rust_crate",
+          "name": "hashbrown",
+          "version": "0.14",
+          "rationale": "The hash map implementation that backs std::collections::HashMap since Rust 1.36; useful when the no_std crate ecosystem is needed.",
+          "trust": 90
+        }
+      ]
+    }
+  ],
+  "transformation_hints": [
+    {
+      "id": "hint-c-error-code-to-rust-result",
+      "source_pattern": "function returning int error code (-1 on failure, 0 on success)",
+      "target_pattern": "function returning Result<T, E>",
+      "transformation": "Map the C error code return to a Rust Result. Use the `?` operator at the call site instead of explicit `if (rc == -1) goto cleanup;` blocks.",
+      "applies_to": {
+        "source": ["procedural", "imperative"],
+        "target": ["systems", "object_oriented", "functional"]
+      },
+      "examples": [
+        {
+          "source_sdef_excerpt": "FunctionSpec { name: \"loadRDB\", outputs: [{ name: \"rc\", type: \"int\" }], logic: \"if (rioRead(...) == -1) return -1;\" }",
+          "target_code": "pub fn load_rdb() -> Result<(), LoadError> { rio.read(...)?; Ok(()) }"
+        }
+      ]
+    }
+  ],
+  "allow_extra_dependencies": true,
+  "allow_behavior_drift": false
+}

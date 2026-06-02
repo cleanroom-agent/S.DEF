@@ -1,0 +1,11 @@
+{
+  "primary": "systems",
+  "secondary": "functional",
+  "memory_model": "ownership",
+  "type_system": "static_dependent",
+  "error_handling": "result_type",
+  "concurrency": "threads",
+  "has_first_class_functions": true,
+  "has_macros": true,
+  "unsafe_constructs": "explicit_unsafe"
+}

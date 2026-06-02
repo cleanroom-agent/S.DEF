@@ -1,0 +1,10 @@
+{
+  "primary": "procedural",
+  "memory_model": "manual",
+  "type_system": "static_weak",
+  "error_handling": "error_codes",
+  "concurrency": "single_threaded",
+  "has_first_class_functions": false,
+  "has_macros": true,
+  "unsafe_constructs": "implicit_everywhere"
+}

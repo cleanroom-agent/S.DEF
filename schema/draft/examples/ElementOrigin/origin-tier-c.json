@@ -1,0 +1,10 @@
+{
+  "reconstruction_class": "idiom",
+  "confidence": 80,
+  "evidence": [
+    "Hash table implementation in C",
+    "Used in 4+ subsystems (db, set, hash, zset)",
+    "Equivalent semantics achievable with std::collections::HashMap"
+  ],
+  "rationale": "Custom hash table is a C idiom for lack of stdlib hash map; in Rust translate to std::collections::HashMap."
+}

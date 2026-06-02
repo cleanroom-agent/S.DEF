@@ -1,0 +1,10 @@
+{
+  "reconstruction_class": "incidental",
+  "confidence": 97,
+  "evidence": [
+    "Function name prefix 'z' is a redis convention for C memory accounting helpers",
+    "Globally tracks 'used_memory' counter that has no analog in ownership-based languages",
+    "Original implementation was removed in redis 3.0 and replaced with direct malloc/free"
+  ],
+  "rationale": "Custom C memory allocator that exists only to track per-process memory usage; in Rust this is invisible to application code (handled by GlobalAlloc or default allocator)."
+}

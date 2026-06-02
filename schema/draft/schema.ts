@@ -60,6 +60,16 @@ export interface SoftwareDefinition {
   tests?: TestContract;
   /** Reconstruction rules — fidelity target, technology constraints, and directives. */
   reconstruction_rules?: ReconstructionRules;
+  /**
+   * Reconstruction policy (PTDL) — cross-language/paradigm directives that tell
+   * the consumer agent which S.DEF elements are source-language implementation
+   * artifacts and should be omitted, replaced, or translated when rebuilding
+   * in a different language or paradigm.
+   *
+   * Orthogonal to `reconstruction_rules`, which handles the time dimension
+   * (v1 vs v2); this handles the language dimension (C vs Rust, OCaml vs Java).
+   */
+  reconstruction_policy?: ReconstructionPolicy;
 
   /** External software dependencies (packages, services). */
   dependencies?: Dependency[];
@@ -439,6 +449,12 @@ export interface DataModel {
   validation_rules?: string[];
   /** Physical design hints (indexes, primary key). */
   physical_design?: PhysicalDesign;
+  /**
+   * Reconstruction provenance — classifies this entity into one of four tiers
+   * (behavior_contract / algorithm / idiom / incidental) so the consumer
+   * agent knows how to handle it during cross-language reconstruction.
+   */
+  origin?: ElementOrigin;
 }
 
 export interface DataAttribute {
@@ -465,6 +481,12 @@ export interface DataAttribute {
   compatibility?: CompatibilityMapping;
   /** Constraints (e.g. "max_length:200", "non_empty"). */
   constraints?: string[];
+  /**
+   * Reconstruction provenance — see [`ElementOrigin`]. Tier D for an attribute
+   * means the consumer should drop the field entirely (e.g. a C-specific
+   * `refcount` field has no Rust equivalent).
+   */
+  origin?: ElementOrigin;
 }
 
 export interface DataRelationship {
@@ -555,6 +577,11 @@ export interface InterfaceContract {
   methods?: ContractMethod[];
   /** Invariants that all implementations must maintain. */
   invariants?: string[];
+  /**
+   * Reconstruction provenance — see [`ElementOrigin`]. Tier C (idiom) is the
+   * common case for interfaces implemented as classes in the source language.
+   */
+  origin?: ElementOrigin;
 }
 
 export interface ClassContract {
@@ -573,6 +600,12 @@ export interface ClassContract {
   dependencies?: string[];
   /** Methods defined on this class. */
   methods?: ContractMethod[];
+  /**
+   * Reconstruction provenance — see [`ElementOrigin`]. Tier D for a class is
+   * common when the class is a C-language workaround (e.g. a manually
+   * refcounted union type) that has no equivalent in a memory-safe target.
+   */
+  origin?: ElementOrigin;
 }
 
 export interface ContractMethod {
@@ -590,6 +623,12 @@ export interface ContractMethod {
   postconditions?: string[];
   /** Error cases. */
   errors?: string[];
+  /**
+   * Reconstruction provenance — see [`ElementOrigin`]. Tier A (behavior
+   * contract) is the default; methods of public API contracts should not
+   * be classified as D unless the contract itself is deprecated.
+   */
+  origin?: ElementOrigin;
 }
 
 export interface EnumContract {
@@ -626,6 +665,11 @@ export interface ApiContract {
   side_effects?: string[];
   /** Rate limiting (e.g. "100 req/min per user"). */
   rate_limit?: string;
+  /**
+   * Reconstruction provenance — see [`ElementOrigin`]. Wire-format APIs (e.g.
+   * RESP, gRPC method signatures) should be Tier A with `confidence >= 0.95`.
+   */
+  origin?: ElementOrigin;
 }
 
 export interface ApiRequest {
@@ -679,6 +723,12 @@ export interface FunctionSpec {
   pure_function?: boolean;
   /** Edge cases and their expected behavior. */
   edge_cases?: EdgeCase[];
+  /**
+   * Reconstruction provenance — see [`ElementOrigin`]. Tier B (algorithm) is
+   * the default for non-trivial functions. Tier D applies to functions that
+   * exist only as language-specific workarounds.
+   */
+  origin?: ElementOrigin;
 }
 
 export interface FunctionParam {
@@ -1494,4 +1544,324 @@ export interface Resource {
   uri?: string;
   /** Description. */
   description?: string;
+}
+
+// ============================================================================
+// Reconstruction Policy (PTDL — Paradigm Translation & Decoupling Layer)
+// ============================================================================
+
+/**
+ * Per-document cross-language/paradigm reconstruction policy.
+ *
+ * This block tells the consumer agent how to handle S.DEF elements that
+ * originate from a different language or paradigm. It is orthogonal to
+ * `reconstruction_rules`, which handles the time dimension (v1 vs v2).
+ *
+ * # When to use
+ *
+ * Whenever the source software is written in a different language or
+ * paradigm than the target. For same-language refactoring, this block
+ * can be omitted entirely.
+ *
+ * # Four-tier classification
+ *
+ * Each S.DEF element carries an `origin.reconstruction_class` tag:
+ *
+ * | Tier | Class               | Consumer action |
+ * |------|---------------------|-----------------|
+ * | A    | `behavior_contract` | Preserve 1:1 (signatures, semantics, error cases) |
+ * | B    | `algorithm`         | Keep algorithm body, swap data structures |
+ * | C    | `idiom`             | Translate to target-language idioms |
+ * | D    | `incidental`        | Omit — let the target language fill the gap |
+ *
+ * @see docs/19-reconstruction-quality.md for the full design
+ * @see proposals/0000-ptdl-reconstruction-policy.md for the proposal
+ * @example ./examples/ReconstructionPolicy/reconstruction-policy.json ReconstructionPolicy
+ */
+export interface ReconstructionPolicy {
+  /**
+   * Default strategy for Tier C elements when no per-element override exists.
+   * - `translate`: rewrite using target-language idioms (default)
+   * - `preserve`: keep the source-language structure as-is
+   * - `omit`: drop entirely
+   */
+  default_tier_c_strategy?: "translate" | "preserve" | "omit";
+  /**
+   * Default strategy for Tier D elements when no per-element override exists.
+   * - `omit`: drop entirely (default)
+   * - `translate`: still attempt a translation
+   * - `preserve`: keep the source-language structure as-is
+   */
+  default_tier_d_strategy?: "translate" | "preserve" | "omit";
+
+  /** Source-language paradigm fingerprint. Producer-inferred, may be human-overridden. */
+  source_paradigm?: ParadigmMetadata;
+  /** Target-language paradigm fingerprint. Consumer-provided or auto-detected. */
+  target_paradigm?: ParadigmMetadata;
+
+  /** Library substitution suggestions — Producer-inferred from dependency analysis. */
+  library_substitutions?: LibrarySubstitution[];
+
+  /**
+   * Paradigm translation rules. May be document-specific or referenced from a
+   * global pool keyed by paradigm pair (e.g. `c_to_rust`, `ocaml_to_java`).
+   */
+  transformation_hints?: TransformationHint[];
+
+  /**
+   * Whether the consumer agent may introduce dependencies that the original
+   * software did not use. Required for Tier D → library substitution flows.
+   * Default: `true`.
+   */
+  allow_extra_dependencies?: boolean;
+
+  /**
+   * Whether the consumer agent may alter externally observable behavior.
+   * Default: `false` — behavior must be 1:1.
+   *
+   * Set to `true` only when the user explicitly accepts that the rebuild
+   * is a "reinterpretation" rather than a faithful replication.
+   */
+  allow_behavior_drift?: boolean;
+}
+
+/**
+ * Language paradigm fingerprint — describes how a language "thinks."
+ *
+ * This is the machine-readable version of "C is manual-memory, single-threaded,
+ * error-code-driven; Rust is ownership-based, thread-or-async, Result-driven."
+ *
+ * @example ./examples/ParadigmMetadata/paradigm-c.json ParadigmMetadata
+ * @example ./examples/ParadigmMetadata/paradigm-rust.json ParadigmMetadata
+ * @example ./examples/ParadigmMetadata/paradigm-ocaml.json ParadigmMetadata
+ */
+export interface ParadigmMetadata {
+  /** Primary paradigm. */
+  primary:
+    | "imperative"
+    | "object_oriented"
+    | "functional"
+    | "logic"
+    | "procedural"
+    | "scripting"
+    | "systems"
+    | "reactive"
+    | "concurrent_actor";
+  /** Optional secondary paradigm (e.g. Kotlin: oop + functional). */
+  secondary?:
+    | "object_oriented"
+    | "functional"
+    | "generic"
+    | "reflection"
+    | "metaprogramming";
+  /** Memory management model. */
+  memory_model: "manual" | "gc" | "rc" | "ownership" | "region";
+  /** Type system strength. */
+  type_system:
+    | "dynamic"
+    | "static_weak"
+    | "static_strong"
+    | "static_dependent"
+    | "gradual";
+  /** Default error-propagation idiom. */
+  error_handling:
+    | "exceptions"
+    | "error_codes"
+    | "result_type"
+    | "panics"
+    | "longjmp"
+    | "multiple_values";
+  /** Concurrency model. */
+  concurrency:
+    | "threads"
+    | "async_await"
+    | "actors"
+    | "goroutines"
+    | "event_loop"
+    | "single_threaded";
+  /** Whether the language has first-class functions / closures. */
+  has_first_class_functions?: boolean;
+  /** Whether the language has syntactic macros / compile-time code generation. */
+  has_macros?: boolean;
+  /**
+   * How unsafe operations (raw pointers, unions, FFI) are expressed.
+   * `none` means the language does not expose unsafe operations at all.
+   */
+  unsafe_constructs?: "explicit_unsafe" | "implicit_everywhere" | "none";
+}
+
+/**
+ * Per-element reconstruction provenance — the four-tier classification.
+ *
+ * The Producer attaches this to every entity it extracts. The Consumer
+ * reads it to decide what to generate, replace, or omit.
+ *
+ * # Decision matrix
+ *
+ * | Tier | Source impl. contains | Consumer action |
+ * |------|----------------------|-----------------|
+ * | A    | Public API / wire format | Preserve 1:1 |
+ * | B    | Algorithm body | Keep algorithm, swap data structures |
+ * | C    | Source-language idiom | Translate to target-language idiom |
+ * | D    | Source-language workaround | Omit (target language fills the gap) |
+ *
+ * # Confidence
+ *
+ * `confidence` is a 0.0–1.0 score from the Producer's classifier. Consumer
+ * agents should treat `confidence < 0.6` as "advisory only" and double-check
+ * before applying Tier D (omit) — silently dropping a public API would
+ * break behavioral equivalence.
+ *
+ * @example ./examples/ElementOrigin/origin-tier-d.json ElementOrigin
+ * @example ./examples/ElementOrigin/origin-tier-a.json ElementOrigin
+ */
+export interface ElementOrigin {
+  /**
+   * Tier classification. See the decision matrix above.
+   */
+  reconstruction_class:
+    | "behavior_contract"
+    | "algorithm"
+    | "idiom"
+    | "incidental";
+  /**
+   * Producer-inferred confidence in the 0–100 range (integer).
+   * `100` = certain; `>= 60` = reliable; `< 60` = advisory only.
+   *
+   * Consumer agents should treat `confidence < 60` as "advisory only"
+   * and double-check before applying Tier D (omit) — silently dropping
+   * a public API would break behavioral equivalence.
+   */
+  confidence: number;
+  /** Evidence used to make the classification. Audit-friendly free-form strings. */
+  evidence: string[];
+  /** Human-readable rationale. */
+  rationale: string;
+  /**
+   * Optional per-element override of the document-level
+   * `ReconstructionPolicy.default_tier_*_strategy` setting.
+   */
+  override_strategy?: "translate" | "preserve" | "omit";
+}
+
+/**
+ * Suggestion to replace an original implementation with a library in the
+ * target ecosystem.
+ *
+ * The Producer emits one of these for each original-software function
+ * that re-implements something a standard library does (SHA-1, CRC,
+ * hash tables, custom allocators, etc.). The Consumer selects the
+ * highest-trust candidate matching the target ecosystem.
+ *
+ * @example ./examples/LibrarySubstitution/substitution-sha1.json LibrarySubstitution
+ */
+export interface LibrarySubstitution {
+  /** Unique ID (also used in the symbol registry). */
+  id: string;
+  /**
+   * Signature of the function being replaced, in target-language notation.
+   * Example: `"fn sha1(bytes: &[u8]) -> [u8; 20]"`.
+   */
+  function_signature: string;
+  /** What the original software actually used. */
+  original_implementation: {
+    /** Display name (e.g. `"SHA1"`, `"zmalloc"`, `"sds"`). */
+    name: string;
+    /** Source file (e.g. `"src/sha1.c"`). */
+    source_file?: string;
+    /** Lines of code in the original implementation. */
+    lines_of_code?: number;
+    /** SPDX license identifier of the original (e.g. `"BSD-3-Clause"`). */
+    license?: string;
+  };
+  /** Ranked candidates. Consumer picks the highest-trust one matching the target ecosystem. */
+  candidates: LibraryCandidate[];
+  /**
+   * Optional selection rule (DSL string). Default behavior: pick the
+   * candidate with the highest `trust` in the target ecosystem.
+   *
+   * Example: `"target.language == 'rust' ? first : omit"`
+   */
+  selection_rule?: string;
+}
+
+/** A single library candidate for a substitution. */
+export interface LibraryCandidate {
+  /** Target package ecosystem. */
+  ecosystem:
+    | "rust_crate"
+    | "npm"
+    | "pypi"
+    | "maven"
+    | "go_module"
+    | "java_jar"
+    | "dotnet_nuget"
+    | "std";
+  /**
+   * Package / crate / module name. For `ecosystem = "std"`, this is the
+   * full path (e.g. `"std::collections::HashMap"`).
+   */
+  name: string;
+  /**
+   * Version constraint (e.g. `">=0.17"`, `"1.0"`, `"*"`).
+   * Omit for unversioned dependencies.
+   */
+  version?: string;
+  /** Why this candidate is recommended. */
+  rationale: string;
+  /**
+   * Known risks (e.g. `"uses nightly-only feature"`,
+   * `"has unmaintained dependencies"`).
+   */
+  risks?: string[];
+  /**
+   * Trust score in the 0–100 range (integer). Higher = stronger preference.
+   * `100` = production-grade; `>= 60` = reliable; `< 60` = use with caution.
+   */
+  trust: number;
+}
+
+/**
+ * A source-pattern → target-pattern translation rule.
+ *
+ * Transformation hints are keyed by paradigm pair (e.g. `c → rust`,
+ * `ocaml → java`). They can be document-specific or referenced from a
+ * global pool via `sdef://hints/{source}_to_{target}/{slug}` URIs.
+ *
+ * # Source / target patterns
+ *
+ * The pattern strings are matched against S.DEF element characteristics.
+ * They are intentionally free-form (DSL) to allow future evolution
+ * without a schema change. Common forms include:
+ *
+ * - `"function with pattern matching over ADT with >3 variants"`
+ * - `"function returning int error code (-1)"`
+ * - `"function with manual malloc/free pair"`
+ * - `"data model with manual refcount attribute"`
+ *
+ * @example ./examples/TransformationHint/hint-c-error-code-to-rust-result.json TransformationHint
+ */
+export interface TransformationHint {
+  /** Unique ID. */
+  id: string;
+  /** Source-side pattern (DSL, matched against S.DEF element characteristics). */
+  source_pattern: string;
+  /** Target-side pattern (DSL). */
+  target_pattern: string;
+  /** Human-readable transformation rule + pseudocode. */
+  transformation: string;
+  /** Paradigm pairs this rule applies to. */
+  applies_to: {
+    /** Source paradigm primary values. */
+    source: string[];
+    /** Target paradigm primary values. */
+    target: string[];
+  };
+  /** Worked examples. */
+  examples?: {
+    /** S.DEF excerpt of the source pattern. */
+    source_sdef_excerpt: string;
+    /** Generated target code. */
+    target_code: string;
+  }[];
 }

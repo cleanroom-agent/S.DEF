@@ -27,6 +27,10 @@
                     "description": "HTTP method or protocol operation (e.g. \"POST\", \"GET\").",
                     "type": "string"
                 },
+                "origin": {
+                    "$ref": "#/definitions/ElementOrigin",
+                    "description": "Reconstruction provenance — see [`ElementOrigin`]. Wire-format APIs (e.g.\nRESP, gRPC method signatures) should be Tier A with `confidence >= 0.95`."
+                },
                 "path": {
                     "description": "API path (e.g. \"/api/v1/tasks\").",
                     "type": "string"
@@ -380,6 +384,10 @@
                 "name": {
                     "type": "string"
                 },
+                "origin": {
+                    "$ref": "#/definitions/ElementOrigin",
+                    "description": "Reconstruction provenance — see [`ElementOrigin`]. Tier D for a class is\ncommon when the class is a C-language workaround (e.g. a manually\nrefcounted union type) that has no equivalent in a memory-safe target."
+                },
                 "status": {
                     "description": "Lifecycle status: \"active\" (current), \"deprecated\", \"legacy\".",
                     "type": "string"
@@ -565,6 +573,10 @@
                     },
                     "type": "array"
                 },
+                "origin": {
+                    "$ref": "#/definitions/ElementOrigin",
+                    "description": "Reconstruction provenance — see [`ElementOrigin`]. Tier A (behavior\ncontract) is the default; methods of public API contracts should not\nbe classified as D unless the contract itself is deprecated."
+                },
                 "postconditions": {
                     "description": "Conditions guaranteed true after execution.",
                     "items": {
@@ -700,6 +712,10 @@
                 "name": {
                     "type": "string"
                 },
+                "origin": {
+                    "$ref": "#/definitions/ElementOrigin",
+                    "description": "Reconstruction provenance — see [`ElementOrigin`]. Tier D for an attribute\nmeans the consumer should drop the field entirely (e.g. a C-specific\n`refcount` field has no Rust equivalent)."
+                },
                 "required": {
                     "type": "boolean"
                 },
@@ -782,6 +798,10 @@
                 "logical_model": {
                     "description": "The logical model — business meaning in natural language.",
                     "type": "string"
+                },
+                "origin": {
+                    "$ref": "#/definitions/ElementOrigin",
+                    "description": "Reconstruction provenance — classifies this entity into one of four tiers\n(behavior_contract / algorithm / idiom / incidental) so the consumer\nagent knows how to handle it during cross-language reconstruction."
                 },
                 "physical_design": {
                     "$ref": "#/definitions/PhysicalDesign",
@@ -1032,6 +1052,52 @@
             ],
             "type": "object"
         },
+        "ElementOrigin": {
+            "description": "Per-element reconstruction provenance — the four-tier classification.\n\nThe Producer attaches this to every entity it extracts. The Consumer\nreads it to decide what to generate, replace, or omit.\n\n# Decision matrix\n\n| Tier | Source impl. contains | Consumer action |\n|------|----------------------|-----------------|\n| A    | Public API / wire format | Preserve 1:1 |\n| B    | Algorithm body | Keep algorithm, swap data structures |\n| C    | Source-language idiom | Translate to target-language idiom |\n| D    | Source-language workaround | Omit (target language fills the gap) |\n\n# Confidence\n\n`confidence` is a 0.0–1.0 score from the Producer's classifier. Consumer\nagents should treat `confidence < 0.6` as \"advisory only\" and double-check\nbefore applying Tier D (omit) — silently dropping a public API would\nbreak behavioral equivalence.",
+            "properties": {
+                "confidence": {
+                    "description": "Producer-inferred confidence in the 0–100 range (integer).\n`100` = certain; `>= 60` = reliable; `< 60` = advisory only.\n\nConsumer agents should treat `confidence < 60` as \"advisory only\"\nand double-check before applying Tier D (omit) — silently dropping\na public API would break behavioral equivalence.",
+                    "type": "integer"
+                },
+                "evidence": {
+                    "description": "Evidence used to make the classification. Audit-friendly free-form strings.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "override_strategy": {
+                    "description": "Optional per-element override of the document-level\n`ReconstructionPolicy.default_tier_*_strategy` setting.",
+                    "enum": [
+                        "omit",
+                        "preserve",
+                        "translate"
+                    ],
+                    "type": "string"
+                },
+                "rationale": {
+                    "description": "Human-readable rationale.",
+                    "type": "string"
+                },
+                "reconstruction_class": {
+                    "description": "Tier classification. See the decision matrix above.",
+                    "enum": [
+                        "algorithm",
+                        "behavior_contract",
+                        "idiom",
+                        "incidental"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "confidence",
+                "evidence",
+                "rationale",
+                "reconstruction_class"
+            ],
+            "type": "object"
+        },
         "EnumContract": {
             "properties": {
                 "deprecated": {
@@ -1258,6 +1324,10 @@
                     "description": "Function name.",
                     "type": "string"
                 },
+                "origin": {
+                    "$ref": "#/definitions/ElementOrigin",
+                    "description": "Reconstruction provenance — see [`ElementOrigin`]. Tier B (algorithm) is\nthe default for non-trivial functions. Tier D applies to functions that\nexist only as language-specific workarounds."
+                },
                 "outputs": {
                     "description": "Output values.",
                     "items": {
@@ -1358,6 +1428,10 @@
                 "name": {
                     "type": "string"
                 },
+                "origin": {
+                    "$ref": "#/definitions/ElementOrigin",
+                    "description": "Reconstruction provenance — see [`ElementOrigin`]. Tier C (idiom) is the\ncommon case for interfaces implemented as classes in the source language."
+                },
                 "status": {
                     "description": "Lifecycle status: \"active\" (current), \"deprecated\", \"legacy\".",
                     "type": "string"
@@ -1369,6 +1443,111 @@
             },
             "required": [
                 "name"
+            ],
+            "type": "object"
+        },
+        "LibraryCandidate": {
+            "description": "A single library candidate for a substitution.",
+            "properties": {
+                "ecosystem": {
+                    "description": "Target package ecosystem.",
+                    "enum": [
+                        "dotnet_nuget",
+                        "go_module",
+                        "java_jar",
+                        "maven",
+                        "npm",
+                        "pypi",
+                        "rust_crate",
+                        "std"
+                    ],
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Package / crate / module name. For `ecosystem = \"std\"`, this is the\nfull path (e.g. `\"std::collections::HashMap\"`).",
+                    "type": "string"
+                },
+                "rationale": {
+                    "description": "Why this candidate is recommended.",
+                    "type": "string"
+                },
+                "risks": {
+                    "description": "Known risks (e.g. `\"uses nightly-only feature\"`,\n`\"has unmaintained dependencies\"`).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "trust": {
+                    "description": "Trust score in the 0–100 range (integer). Higher = stronger preference.\n`100` = production-grade; `>= 60` = reliable; `< 60` = use with caution.",
+                    "type": "integer"
+                },
+                "version": {
+                    "description": "Version constraint (e.g. `\">=0.17\"`, `\"1.0\"`, `\"*\"`).\nOmit for unversioned dependencies.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "ecosystem",
+                "name",
+                "rationale",
+                "trust"
+            ],
+            "type": "object"
+        },
+        "LibrarySubstitution": {
+            "description": "Suggestion to replace an original implementation with a library in the\ntarget ecosystem.\n\nThe Producer emits one of these for each original-software function\nthat re-implements something a standard library does (SHA-1, CRC,\nhash tables, custom allocators, etc.). The Consumer selects the\nhighest-trust candidate matching the target ecosystem.",
+            "properties": {
+                "candidates": {
+                    "description": "Ranked candidates. Consumer picks the highest-trust one matching the target ecosystem.",
+                    "items": {
+                        "$ref": "#/definitions/LibraryCandidate"
+                    },
+                    "type": "array"
+                },
+                "function_signature": {
+                    "description": "Signature of the function being replaced, in target-language notation.\nExample: `\"fn sha1(bytes: &[u8]) -> [u8; 20]\"`.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique ID (also used in the symbol registry).",
+                    "type": "string"
+                },
+                "original_implementation": {
+                    "description": "What the original software actually used.",
+                    "properties": {
+                        "license": {
+                            "description": "SPDX license identifier of the original (e.g. `\"BSD-3-Clause\"`).",
+                            "type": "string"
+                        },
+                        "lines_of_code": {
+                            "description": "Lines of code in the original implementation.",
+                            "type": "integer"
+                        },
+                        "name": {
+                            "description": "Display name (e.g. `\"SHA1\"`, `\"zmalloc\"`, `\"sds\"`).",
+                            "type": "string"
+                        },
+                        "source_file": {
+                            "description": "Source file (e.g. `\"src/sha1.c\"`).",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "name"
+                    ],
+                    "type": "object"
+                },
+                "selection_rule": {
+                    "description": "Optional selection rule (DSL string). Default behavior: pick the\ncandidate with the highest `trust` in the target ecosystem.\n\nExample: `\"target.language == 'rust' ? first : omit\"`",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "candidates",
+                "function_signature",
+                "id",
+                "original_implementation"
             ],
             "type": "object"
         },
@@ -1388,6 +1567,108 @@
             "required": [
                 "name",
                 "type"
+            ],
+            "type": "object"
+        },
+        "ParadigmMetadata": {
+            "description": "Language paradigm fingerprint — describes how a language \"thinks.\"\n\nThis is the machine-readable version of \"C is manual-memory, single-threaded,\nerror-code-driven; Rust is ownership-based, thread-or-async, Result-driven.\"",
+            "properties": {
+                "concurrency": {
+                    "description": "Concurrency model.",
+                    "enum": [
+                        "actors",
+                        "async_await",
+                        "event_loop",
+                        "goroutines",
+                        "single_threaded",
+                        "threads"
+                    ],
+                    "type": "string"
+                },
+                "error_handling": {
+                    "description": "Default error-propagation idiom.",
+                    "enum": [
+                        "error_codes",
+                        "exceptions",
+                        "longjmp",
+                        "multiple_values",
+                        "panics",
+                        "result_type"
+                    ],
+                    "type": "string"
+                },
+                "has_first_class_functions": {
+                    "description": "Whether the language has first-class functions / closures.",
+                    "type": "boolean"
+                },
+                "has_macros": {
+                    "description": "Whether the language has syntactic macros / compile-time code generation.",
+                    "type": "boolean"
+                },
+                "memory_model": {
+                    "description": "Memory management model.",
+                    "enum": [
+                        "gc",
+                        "manual",
+                        "ownership",
+                        "rc",
+                        "region"
+                    ],
+                    "type": "string"
+                },
+                "primary": {
+                    "description": "Primary paradigm.",
+                    "enum": [
+                        "concurrent_actor",
+                        "functional",
+                        "imperative",
+                        "logic",
+                        "object_oriented",
+                        "procedural",
+                        "reactive",
+                        "scripting",
+                        "systems"
+                    ],
+                    "type": "string"
+                },
+                "secondary": {
+                    "description": "Optional secondary paradigm (e.g. Kotlin: oop + functional).",
+                    "enum": [
+                        "functional",
+                        "generic",
+                        "metaprogramming",
+                        "object_oriented",
+                        "reflection"
+                    ],
+                    "type": "string"
+                },
+                "type_system": {
+                    "description": "Type system strength.",
+                    "enum": [
+                        "dynamic",
+                        "gradual",
+                        "static_dependent",
+                        "static_strong",
+                        "static_weak"
+                    ],
+                    "type": "string"
+                },
+                "unsafe_constructs": {
+                    "description": "How unsafe operations (raw pointers, unions, FFI) are expressed.\n`none` means the language does not expose unsafe operations at all.",
+                    "enum": [
+                        "explicit_unsafe",
+                        "implicit_everywhere",
+                        "none"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "concurrency",
+                "error_handling",
+                "memory_model",
+                "primary",
+                "type_system"
             ],
             "type": "object"
         },
@@ -1466,6 +1747,60 @@
                 "directive",
                 "priority"
             ],
+            "type": "object"
+        },
+        "ReconstructionPolicy": {
+            "description": "Per-document cross-language/paradigm reconstruction policy.\n\nThis block tells the consumer agent how to handle S.DEF elements that\noriginate from a different language or paradigm. It is orthogonal to\n`reconstruction_rules`, which handles the time dimension (v1 vs v2).\n\n# When to use\n\nWhenever the source software is written in a different language or\nparadigm than the target. For same-language refactoring, this block\ncan be omitted entirely.\n\n# Four-tier classification\n\nEach S.DEF element carries an `origin.reconstruction_class` tag:\n\n| Tier | Class               | Consumer action |\n|------|---------------------|-----------------|\n| A    | `behavior_contract` | Preserve 1:1 (signatures, semantics, error cases) |\n| B    | `algorithm`         | Keep algorithm body, swap data structures |\n| C    | `idiom`             | Translate to target-language idioms |\n| D    | `incidental`        | Omit — let the target language fill the gap |",
+            "properties": {
+                "allow_behavior_drift": {
+                    "description": "Whether the consumer agent may alter externally observable behavior.\nDefault: `false` — behavior must be 1:1.\n\nSet to `true` only when the user explicitly accepts that the rebuild\nis a \"reinterpretation\" rather than a faithful replication.",
+                    "type": "boolean"
+                },
+                "allow_extra_dependencies": {
+                    "description": "Whether the consumer agent may introduce dependencies that the original\nsoftware did not use. Required for Tier D → library substitution flows.\nDefault: `true`.",
+                    "type": "boolean"
+                },
+                "default_tier_c_strategy": {
+                    "description": "Default strategy for Tier C elements when no per-element override exists.\n- `translate`: rewrite using target-language idioms (default)\n- `preserve`: keep the source-language structure as-is\n- `omit`: drop entirely",
+                    "enum": [
+                        "omit",
+                        "preserve",
+                        "translate"
+                    ],
+                    "type": "string"
+                },
+                "default_tier_d_strategy": {
+                    "description": "Default strategy for Tier D elements when no per-element override exists.\n- `omit`: drop entirely (default)\n- `translate`: still attempt a translation\n- `preserve`: keep the source-language structure as-is",
+                    "enum": [
+                        "omit",
+                        "preserve",
+                        "translate"
+                    ],
+                    "type": "string"
+                },
+                "library_substitutions": {
+                    "description": "Library substitution suggestions — Producer-inferred from dependency analysis.",
+                    "items": {
+                        "$ref": "#/definitions/LibrarySubstitution"
+                    },
+                    "type": "array"
+                },
+                "source_paradigm": {
+                    "$ref": "#/definitions/ParadigmMetadata",
+                    "description": "Source-language paradigm fingerprint. Producer-inferred, may be human-overridden."
+                },
+                "target_paradigm": {
+                    "$ref": "#/definitions/ParadigmMetadata",
+                    "description": "Target-language paradigm fingerprint. Consumer-provided or auto-detected."
+                },
+                "transformation_hints": {
+                    "description": "Paradigm translation rules. May be document-specific or referenced from a\nglobal pool keyed by paradigm pair (e.g. `c_to_rust`, `ocaml_to_java`).",
+                    "items": {
+                        "$ref": "#/definitions/TransformationHint"
+                    },
+                    "type": "array"
+                }
+            },
             "type": "object"
         },
         "ReconstructionRules": {
@@ -1655,6 +1990,10 @@
                 "name": {
                     "description": "The software identifier (e.g. \"com.example.todoapp\").",
                     "type": "string"
+                },
+                "reconstruction_policy": {
+                    "$ref": "#/definitions/ReconstructionPolicy",
+                    "description": "Reconstruction policy (PTDL) — cross-language/paradigm directives that tell\nthe consumer agent which S.DEF elements are source-language implementation\nartifacts and should be omitted, replaced, or translated when rebuilding\nin a different language or paradigm.\n\nOrthogonal to `reconstruction_rules`, which handles the time dimension\n(v1 vs v2); this handles the language dimension (C vs Rust, OCaml vs Java)."
                 },
                 "reconstruction_rules": {
                     "$ref": "#/definitions/ReconstructionRules",
@@ -1932,6 +2271,80 @@
                     "type": "array"
                 }
             },
+            "type": "object"
+        },
+        "TransformationHint": {
+            "description": "A source-pattern → target-pattern translation rule.\n\nTransformation hints are keyed by paradigm pair (e.g. `c → rust`,\n`ocaml → java`). They can be document-specific or referenced from a\nglobal pool via `sdef://hints/{source}_to_{target}/{slug}` URIs.\n\n# Source / target patterns\n\nThe pattern strings are matched against S.DEF element characteristics.\nThey are intentionally free-form (DSL) to allow future evolution\nwithout a schema change. Common forms include:\n\n- `\"function with pattern matching over ADT with >3 variants\"`\n- `\"function returning int error code (-1)\"`\n- `\"function with manual malloc/free pair\"`\n- `\"data model with manual refcount attribute\"`",
+            "properties": {
+                "applies_to": {
+                    "description": "Paradigm pairs this rule applies to.",
+                    "properties": {
+                        "source": {
+                            "description": "Source paradigm primary values.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "target": {
+                            "description": "Target paradigm primary values.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "source",
+                        "target"
+                    ],
+                    "type": "object"
+                },
+                "examples": {
+                    "description": "Worked examples.",
+                    "items": {
+                        "properties": {
+                            "source_sdef_excerpt": {
+                                "description": "S.DEF excerpt of the source pattern.",
+                                "type": "string"
+                            },
+                            "target_code": {
+                                "description": "Generated target code.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "source_sdef_excerpt",
+                            "target_code"
+                        ],
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Unique ID.",
+                    "type": "string"
+                },
+                "source_pattern": {
+                    "description": "Source-side pattern (DSL, matched against S.DEF element characteristics).",
+                    "type": "string"
+                },
+                "target_pattern": {
+                    "description": "Target-side pattern (DSL).",
+                    "type": "string"
+                },
+                "transformation": {
+                    "description": "Human-readable transformation rule + pseudocode.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "applies_to",
+                "id",
+                "source_pattern",
+                "target_pattern",
+                "transformation"
+            ],
             "type": "object"
         },
         "TypedAttribute": {

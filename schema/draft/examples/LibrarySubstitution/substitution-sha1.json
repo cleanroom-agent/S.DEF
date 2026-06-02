@@ -1,0 +1,35 @@
+{
+  "id": "sub-sha1",
+  "function_signature": "fn sha1(bytes: &[u8]) -> [u8; 20]",
+  "original_implementation": {
+    "name": "SHA1",
+    "source_file": "src/sha1.c",
+    "lines_of_code": 280,
+    "license": "BSD-3-Clause"
+  },
+  "candidates": [
+    {
+      "ecosystem": "rust_crate",
+      "name": "ring",
+      "version": "0.17",
+      "rationale": "Vetted cryptographic library used by major Rust projects; provides SHA-1 via digest::SHA1_FOR_LEGACY_USE_ONLY.",
+      "risks": ["SHA-1 is deprecated for collision resistance; suitable only for legacy wire-protocol compatibility"],
+      "trust": 95
+    },
+    {
+      "ecosystem": "rust_crate",
+      "name": "sha1",
+      "version": "0.10",
+      "rationale": "Pure-Rust SHA-1 implementation; smaller dependency footprint than ring.",
+      "trust": 80
+    },
+    {
+      "ecosystem": "npm",
+      "name": "js-sha1",
+      "version": "0.7.0",
+      "rationale": "Pure-JS SHA-1 for browser/TypeScript targets.",
+      "trust": 75
+    }
+  ],
+  "selection_rule": "target.language == 'rust' ? first : target.language == 'typescript' ? last : omit"
+}

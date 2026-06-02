@@ -882,6 +882,25 @@
     ]
   },
 
+  "reconstruction_policy": {
+    "default_tier_c_strategy": "translate",
+    "default_tier_d_strategy": "omit",
+    "allow_extra_dependencies": true,
+    "allow_behavior_drift": false,
+    "transformation_hints": [
+      {
+        "id": "hint-orm-to-query-builder",
+        "source_pattern": "ORM-managed entity with active-record style mutation methods",
+        "target_pattern": "immutable data class + pure query builder",
+        "transformation": "Replace active-record setters with `with*` methods that return new instances; route persistence through an explicit repository function.",
+        "applies_to": {
+          "source": ["object_oriented"],
+          "target": ["functional"]
+        }
+      }
+    ]
+  },
+
   "dependencies": [
     { "name": "bcrypt", "version": "^5.1.0", "type": "runtime", "purpose": "Password hashing" },
     { "name": "jsonwebtoken", "version": "^9.0.0", "type": "runtime", "purpose": "JWT signing and verification" },

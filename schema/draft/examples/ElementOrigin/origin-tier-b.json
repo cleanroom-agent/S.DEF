@@ -1,0 +1,10 @@
+{
+  "reconstruction_class": "algorithm",
+  "confidence": 85,
+  "evidence": [
+    "Encodes type tag + length + bytes per redisObject type",
+    "Branch count = 8 (one per redisObject type)",
+    "Used only for persistence; not a public API"
+  ],
+  "rationale": "RDB serialization algorithm — preserve the encoding logic, but translate the type-dispatch from C switch-on-enum to Rust match."
+}
